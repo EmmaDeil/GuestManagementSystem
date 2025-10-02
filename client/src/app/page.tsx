@@ -1,102 +1,114 @@
-import Image from "next/image";
-
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <h1 className="text-2xl font-bold text-gray-900">Guest Management System</h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      </header>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            Welcome to Guest Management
+          </h2>
+          <p className="text-xl text-gray-600 mb-8">
+            Streamline your organization&apos;s guest check-in process with QR codes and digital tracking
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
+          {/* Guest Sign-In */}
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="text-blue-600 text-6xl mb-4">📱</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Guest Sign-In</h3>
+            <p className="text-gray-600 mb-6">
+              Scan the QR code provided by your organization to quickly sign in as a guest.
+            </p>
+            <div className="bg-blue-50 p-4 rounded-lg mb-6">
+              <p className="text-sm text-blue-800">
+                <strong>How it works:</strong><br />
+                1. Scan QR code with your phone<br />
+                2. Fill out the sign-in form<br />
+                3. Receive your unique guest code<br />
+                4. Collect ID from security
+              </p>
+            </div>
+            <p className="text-sm text-gray-500">
+              Don&apos;t have a QR code? Contact your host or the front desk.
+            </p>
+          </div>
+
+          {/* Organization Admin */}
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="text-green-600 text-6xl mb-4">🏢</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Organization Admin</h3>
+            <p className="text-gray-600 mb-6">
+              Manage your organization&apos;s guest registration, generate QR codes, and track visitor analytics.
+            </p>
+            <a
+              href="/admin"
+              className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors mb-4"
+            >
+              Admin Login
+            </a>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <p className="text-sm text-green-800">
+                <strong>Features:</strong><br />
+                • Generate QR codes for guest sign-in<br />
+                • Track guest visits and analytics<br />
+                • Assign ID cards to guests<br />
+                • Manage locations and staff
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Key Features</h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-blue-600 text-4xl mb-3">🔐</div>
+              <h4 className="font-semibold text-gray-900 mb-2">Secure Check-In</h4>
+              <p className="text-sm text-gray-600">Unique 6-digit codes and secure data handling</p>
+            </div>
+            <div className="text-center">
+              <div className="text-blue-600 text-4xl mb-3">📱</div>
+              <h4 className="font-semibold text-gray-900 mb-2">Mobile Friendly</h4>
+              <p className="text-sm text-gray-600">Responsive design works on all devices</p>
+            </div>
+            <div className="text-center">
+              <div className="text-blue-600 text-4xl mb-3">📊</div>
+              <h4 className="font-semibold text-gray-900 mb-2">Analytics Dashboard</h4>
+              <p className="text-sm text-gray-600">Track visitor patterns and generate reports</p>
+            </div>
+            <div className="text-center">
+              <div className="text-blue-600 text-4xl mb-3">🎯</div>
+              <h4 className="font-semibold text-gray-900 mb-2">QR Code Integration</h4>
+              <p className="text-sm text-gray-600">Easy sign-in with scannable QR codes</p>
+            </div>
+            <div className="text-center">
+              <div className="text-blue-600 text-4xl mb-3">⏱️</div>
+              <h4 className="font-semibold text-gray-900 mb-2">Time Tracking</h4>
+              <p className="text-sm text-gray-600">Automatic visit duration and minimum stay enforcement</p>
+            </div>
+            <div className="text-center">
+              <div className="text-blue-600 text-4xl mb-3">🖨️</div>
+              <h4 className="font-semibold text-gray-900 mb-2">Print &amp; File</h4>
+              <p className="text-sm text-gray-600">Generate printable guest records for filing</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p>&copy; 2025 Guest Management System. Built with Next.js and TypeScript.</p>
+        </div>
       </footer>
     </div>
   );
