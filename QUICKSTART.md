@@ -14,25 +14,66 @@ I've resolved all the TypeScript errors and connection issues:
 
 You need MongoDB running for the backend to work. Here are your options:
 
-### Option 1: MongoDB Atlas (Cloud - Recommended)
-1. Go to [MongoDB Atlas](https://mongodb.com/atlas)
-2. Create a free account
-3. Create a new cluster
-4. Get your connection string
-5. Update `server/.env` with your Atlas connection string:
-   ```
-   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/guest-management
+### Option 1: MongoDB Atlas (Cloud - Recommended) 🌟
+**Perfect for: Development and production, no local setup needed**
+
+1. **Create Account**: Go to [MongoDB Atlas](https://mongodb.com/atlas) and sign up
+2. **Create Cluster**: Choose M0 Sandbox (free tier)
+3. **Create Database User**: 
+   - Username: `guestapp`
+   - Generate secure password
+   - Grant "Read and write to any database"
+4. **Network Access**: Add your IP or "Allow access from anywhere" for development
+5. **Get Connection String**: Click "Connect" → "Connect your application" → Copy the string
+6. **Update Environment**: In `server/.env`, replace:
+   ```env
+   MONGODB_URI=mongodb+srv://guestapp:<password>@cluster.mongodb.net/guest-management?retryWrites=true&w=majority
    ```
 
-### Option 2: Local MongoDB
-1. Download and install [MongoDB Community Server](https://www.mongodb.com/try/download/community)
-2. Start MongoDB service:
-   - **Windows**: Open "Services" app → Start "MongoDB" service
-   - **Mac/Linux**: `brew services start mongodb-community` or `sudo systemctl start mongod`
+### Option 2: Docker (Easy Local Setup) 🐳
+**Perfect for: Local development without MongoDB installation**
+
+```bash
+# Start MongoDB container
+docker run --name guest-management-mongo -p 27017:27017 -d mongo:latest
+
+# Check if running
+docker ps
+
+# Stop/Start container later
+docker stop guest-management-mongo
+docker start guest-management-mongo
+```
+
+### Option 3: Local MongoDB Installation 💻
+**Perfect for: Offline development, full control**
+
+1. Download [MongoDB Community Server](https://www.mongodb.com/try/download/community)
+2. Install with default settings
+3. Start MongoDB service:
+   - **Windows**: `net start MongoDB` or use Services app
+   - **Mac**: `brew services start mongodb-community`
+   - **Linux**: `sudo systemctl start mongod`
+
+### 🧪 Test Your MongoDB Setup
+```bash
+cd server
+npm run check:mongodb
+```
+You should see: ✅ MongoDB connection successful!
 
 ## 🚀 Start the Application
 
-### 1. Terminal 1 - Backend Server
+### 1. Create Demo Data (First Time Only)
+```bash
+cd server
+npm run seed:demo
+```
+**This creates a demo organization:**
+- Email: `demo@organization.com`
+- Password: `demo123`
+
+### 2. Terminal 1 - Backend Server
 ```bash
 cd server
 npm run dev
@@ -45,7 +86,7 @@ npm run dev
 ✅ MongoDB Connected Successfully
 ```
 
-### 2. Terminal 2 - Frontend Client
+### 3. Terminal 2 - Frontend Client
 ```bash
 cd client
 npm run dev

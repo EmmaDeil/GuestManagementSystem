@@ -8,6 +8,8 @@
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
     "seed:demo": "ts-node src/scripts/seed-demo.ts",
+    "check:mongodb": "ts-node src/scripts/check-mongodb.ts",
+    "setup": "npm run check:mongodb && npm run seed:demo",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["guest-management", "express", "typescript", "qr-code"],

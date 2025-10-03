@@ -27,6 +27,10 @@ A scalable web application for managing guest sign-ins and sign-outs in organiza
 - **QR Code** generation library
 - **JWT** for authentication
 
+### Database
+- **MongoDB** - Document database for storing organizations and guest data
+- **Options**: MongoDB Atlas (cloud), Local MongoDB, or Docker
+
 ### Shared
 - **TypeScript interfaces** for type safety across frontend and backend
 
@@ -44,6 +48,31 @@ GuestManagementApp/
 
 ### Prerequisites
 - Node.js 18+
+- MongoDB (see setup options below)
+
+### 🗄️ MongoDB Setup
+**Choose one option:**
+
+**Option 1: MongoDB Atlas (Recommended)**
+- ✅ Cloud-hosted, no local installation
+- ✅ Free tier available
+- ✅ Always accessible
+- 📖 [Detailed Atlas Setup Guide](./MONGODB_SETUP.md)
+
+**Option 2: Docker (Easiest Local)**
+```bash
+docker run --name guest-management-mongo -p 27017:27017 -d mongo:latest
+```
+
+**Option 3: Local Installation**
+- Download from [MongoDB Community Server](https://www.mongodb.com/try/download/community)
+- Follow installation instructions for your OS
+
+### 🧪 Test MongoDB Connection
+```bash
+cd server
+npm run check:mongodb
+```
 - MongoDB database
 - npm or yarn
 

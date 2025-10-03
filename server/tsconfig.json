@@ -6,7 +6,6 @@
     "moduleResolution": "node10",
     "ignoreDeprecations": "6.0",
     "outDir": "./dist",
-    "rootDir": "./",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
