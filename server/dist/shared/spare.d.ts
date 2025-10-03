@@ -1,0 +1,1 @@
+//# sourceMappingURL=spare.d.ts.map
