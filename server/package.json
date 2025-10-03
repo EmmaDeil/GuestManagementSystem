@@ -12,7 +12,12 @@
     "setup": "npm run check:mongodb && npm run seed:demo",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["guest-management", "express", "typescript", "qr-code"],
+  "keywords": [
+    "guest-management",
+    "express",
+    "typescript",
+    "qr-code"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -21,6 +26,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.20.0",
     "mongoose": "^8.18.3",
     "nodemailer": "^7.0.6",
     "qrcode": "^1.5.4"

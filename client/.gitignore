@@ -12,6 +12,11 @@
 .env.production
 .env.development
 
+.env
+.env.local
+*.key
+*.pem
+
 # testing
 /coverage
 

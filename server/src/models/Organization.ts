@@ -64,7 +64,7 @@ const OrganizationSchema: Schema = new Schema({
 });
 
 // Indexes for better performance
-OrganizationSchema.index({ email: 1 });
+// Note: email already has unique index, so we don't need to duplicate it
 OrganizationSchema.index({ isActive: 1 });
 
 export default mongoose.model<IOrganization>('Organization', OrganizationSchema);

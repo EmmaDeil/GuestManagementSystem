@@ -91,7 +91,7 @@ const GuestSchema: Schema = new Schema({
 });
 
 // Indexes for better performance
-GuestSchema.index({ guestCode: 1 });
+// Note: guestCode already has unique index, so we don't need to duplicate it
 GuestSchema.index({ organizationId: 1 });
 GuestSchema.index({ status: 1 });
 GuestSchema.index({ signInTime: 1 });
