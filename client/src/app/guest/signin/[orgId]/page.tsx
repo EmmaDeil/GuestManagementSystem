@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { GuestRegistrationRequest, ApiResponse } from '../../../../types';
+import config from '../../../../config';
 
 interface GuestFormData {
    guestName: string;
@@ -48,7 +49,7 @@ export default function GuestSignInPage() {
    useEffect(() => {
       const fetchOrganization = async () => {
          try {
-            const response = await fetch(`/api/organizations/${orgId}`);
+            const response = await fetch(`${config.apiUrl}/api/organizations/${orgId}`);
             const data: ApiResponse<Organization> = await response.json();
 
             if (data.success && data.data) {
@@ -81,7 +82,7 @@ export default function GuestSignInPage() {
             organizationId: orgId,
          };
 
-         const response = await fetch('/api/guests/register', {
+         const response = await fetch(`${config.apiUrl}/api/guests/register`, {
             method: 'POST',
             headers: {
                'Content-Type': 'application/json',

@@ -8,15 +8,13 @@ const nextConfig = {
     unoptimized: true, // For Render deployment
   },
 
-  // Reduce bundle size
-  experimental: {
-    optimizeCss: true,
-  },
-
   // Environment variables validation
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
+
+  // Ensure proper page discovery
+  pageExtensions: ["tsx", "ts", "jsx", "js"],
 
   // Security headers for production
   async headers() {

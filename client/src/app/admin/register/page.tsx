@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import config from '../../../config';
 
 export default function AdminRegister() {
    const router = useRouter();
@@ -71,7 +72,7 @@ export default function AdminRegister() {
       }
 
       try {
-         const response = await fetch('/api/auth/register', {
+         const response = await fetch(`${config.apiUrl}/api/auth/register`, {
             method: 'POST',
             headers: {
                'Content-Type': 'application/json',

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { LoginRequest, ApiResponse, LoginResponse } from '../../types';
+import config from '../../config';
 
 interface LoginFormData {
    email: string;
@@ -28,7 +29,7 @@ export default function AdminLoginPage() {
       try {
          const loginData: LoginRequest = formData;
 
-         const response = await fetch('/api/auth/login', {
+         const response = await fetch(`${config.apiUrl}/api/auth/login`, {
             method: 'POST',
             headers: {
                'Content-Type': 'application/json',

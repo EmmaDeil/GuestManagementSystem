@@ -251,4 +251,98 @@ router.patch('/:guestId/assign-id', authenticateToken, async (req: any, res) => 
   }
 });
 
+// Admin sign out guest route
+router.patch('/:id/signout', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = (req as any).organizationId;
+
+    const guest = await Guest.findOne({ _id: id, organizationId });
+    if (!guest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Guest not found'
+      });
+    }
+
+    if (guest.status !== 'signed-in') {
+      return res.status(400).json({
+        success: false,
+        message: 'Guest is not currently signed in'
+      });
+    }
+
+    // Update guest status
+    guest.status = 'signed-out';
+    guest.signOutTime = new Date();
+    await guest.save();
+
+    const response: ApiResponse = {
+      success: true,
+      message: 'Guest signed out successfully'
+    };
+
+    res.json(response);
+  } catch (error: any) {
+    console.error('Sign out guest error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Extend guest visit duration
+router.patch('/:id/extend', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { additionalMinutes } = req.body;
+    const organizationId = (req as any).organizationId;
+
+    if (!additionalMinutes || additionalMinutes <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Additional minutes must be a positive number'
+      });
+    }
+
+    const guest = await Guest.findOne({ _id: id, organizationId });
+    if (!guest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Guest not found'
+      });
+    }
+
+    if (guest.status !== 'signed-in') {
+      return res.status(400).json({
+        success: false,
+        message: 'Can only extend visit for signed-in guests'
+      });
+    }
+
+    // Extend the expected duration
+    guest.expectedDuration += additionalMinutes;
+    await guest.save();
+
+    const response: ApiResponse = {
+      success: true,
+      message: `Visit extended by ${additionalMinutes} minutes`,
+      data: {
+        newExpectedDuration: guest.expectedDuration
+      }
+    };
+
+    res.json(response);
+  } catch (error: any) {
+    console.error('Extend visit error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 export default router;
