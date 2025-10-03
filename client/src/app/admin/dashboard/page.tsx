@@ -16,6 +16,7 @@ export default function AdminDashboard() {
    const [error, setError] = useState<string | null>(null);
    const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
    const [showDetailsModal, setShowDetailsModal] = useState(false);
+   const [currentTime, setCurrentTime] = useState(new Date());
 
    useEffect(() => {
       const token = localStorage.getItem('admin_token');
@@ -35,6 +36,15 @@ export default function AdminDashboard() {
          router.push('/admin');
       }
    }, [router]);
+
+   // Real-time timer updates
+   useEffect(() => {
+      const interval = setInterval(() => {
+         setCurrentTime(new Date());
+      }, 1000); // Update every second
+
+      return () => clearInterval(interval);
+   }, []);
 
    const fetchDashboardData = async (token: string) => {
       try {
@@ -194,14 +204,13 @@ export default function AdminDashboard() {
    const isGuestExpired = (guest: Guest): boolean => {
       const signInTime = new Date(guest.signInTime);
       const expectedEndTime = new Date(signInTime.getTime() + guest.expectedDuration * 60 * 1000);
-      return new Date() > expectedEndTime && guest.status === 'signed-in';
+      return currentTime > expectedEndTime && guest.status === 'signed-in';
    };
 
    const getTimeRemaining = (guest: Guest): string => {
       const signInTime = new Date(guest.signInTime);
       const expectedEndTime = new Date(signInTime.getTime() + guest.expectedDuration * 60 * 1000);
-      const now = new Date();
-      const diffMinutes = Math.floor((expectedEndTime.getTime() - now.getTime()) / (1000 * 60));
+      const diffMinutes = Math.floor((expectedEndTime.getTime() - currentTime.getTime()) / (1000 * 60));
 
       if (diffMinutes <= 0) {
          const overdue = Math.abs(diffMinutes);
@@ -209,9 +218,7 @@ export default function AdminDashboard() {
       }
 
       return `${diffMinutes} min remaining`;
-   };
-
-   if (isLoading) {
+   }; if (isLoading) {
       return (
          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -292,159 +299,167 @@ export default function AdminDashboard() {
                <div className="px-6 py-4 border-b border-gray-200">
                   <h2 className="text-lg font-semibold text-gray-900">Recent Guests</h2>
                </div>
-               <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                     <thead className="bg-gray-50">
-                        <tr>
-                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Guest
-                           </th>
-                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Code
-                           </th>
-                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Person to See
-                           </th>
-                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Status
-                           </th>
-                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Sign-In Time
-                           </th>
-                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              ID Card
-                           </th>
-                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Timer Status
-                           </th>
-                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Actions
-                           </th>
-                        </tr>
-                     </thead>
-                     <tbody className="bg-white divide-y divide-gray-200">
-                        {Array.isArray(guests) && guests.map((guest) => (
-                           <tr key={guest._id}>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                 <div>
-                                    <div className="text-sm font-medium text-gray-900">{guest.guestName}</div>
-                                    <div className="text-sm text-gray-500">{guest.guestPhone}</div>
-                                 </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-                                 {guest.guestCode}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                 {guest.personToSee}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${guest.status === 'signed-in'
-                                    ? 'bg-green-100 text-green-800'
-                                    : guest.status === 'signed-out'
-                                       ? 'bg-gray-100 text-gray-800'
-                                       : 'bg-red-100 text-red-800'
-                                    }`}>
-                                    {guest.status}
-                                 </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                 {new Date(guest.signInTime).toLocaleString()}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                 {guest.idCardAssigned ? (
-                                    <span className="text-green-600">Assigned: {guest.idCardNumber}</span>
-                                 ) : (
-                                    <span className="text-orange-600">Pending</span>
-                                 )}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                 {guest.status === 'signed-in' && (
-                                    <div className={`${isGuestExpired(guest) ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>
-                                       {getTimeRemaining(guest)}
-                                       {isGuestExpired(guest) && (
-                                          <div className="text-xs text-red-500 mt-1">
-                                             ⚠️ Expired - Action Required
-                                          </div>
-                                       )}
-                                    </div>
-                                 )}
-                                 {guest.status !== 'signed-in' && (
-                                    <span className="text-gray-400">-</span>
-                                 )}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                 <div className="flex space-x-2">
-                                    {/* Assign ID Card Button */}
-                                    {!guest.idCardAssigned && guest.status === 'signed-in' && (
-                                       <button
-                                          onClick={() => {
-                                             const idCardNumber = prompt('Enter ID Card Number:');
-                                             if (idCardNumber && guest._id) {
-                                                assignIdCard(guest._id, idCardNumber);
-                                             }
-                                          }}
-                                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium"
-                                          title="Assign ID Card"
-                                       >
-                                          Assign ID
-                                       </button>
-                                    )}
-
-                                    {/* Sign Out Button */}
-                                    {guest.status === 'signed-in' && (
-                                       <button
-                                          onClick={() => guest._id && signOutGuest(guest._id)}
-                                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-medium"
-                                          title="Sign Out Guest"
-                                       >
-                                          Sign Out
-                                       </button>
-                                    )}
-
-                                    {/* Extend Visit Button - Show prominently for expired guests */}
-                                    {guest.status === 'signed-in' && (
-                                       <button
-                                          onClick={() => {
-                                             const additional = prompt('Extend visit by how many minutes?', '30');
-                                             if (additional && guest._id) {
-                                                const minutes = parseInt(additional);
-                                                if (!isNaN(minutes) && minutes > 0) {
-                                                   extendVisit(guest._id, minutes);
-                                                }
-                                             }
-                                          }}
-                                          className={`px-3 py-1 rounded text-xs font-medium ${isGuestExpired(guest)
-                                                ? 'bg-orange-500 hover:bg-orange-600 text-white animate-pulse'
-                                                : 'bg-gray-500 hover:bg-gray-600 text-white'
-                                             }`}
-                                          title={isGuestExpired(guest) ? 'Guest is overdue - Extend visit time' : 'Extend Visit Time'}
-                                       >
-                                          {isGuestExpired(guest) ? '⏰ Extend' : 'Extend'}
-                                       </button>
-                                    )}
-
-                                    {/* View Details Button */}
-                                    <button
-                                       onClick={() => {
-                                          setSelectedGuest(guest);
-                                          setShowDetailsModal(true);
-                                       }}
-                                       className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded text-xs font-medium"
-                                       title="View Guest Details"
-                                    >
-                                       Details
-                                    </button>
-                                 </div>
-                              </td>
+               <div className="overflow-hidden">
+                  <div className="overflow-x-auto">
+                     <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                           <tr>
+                              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                 Guest
+                              </th>
+                              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                                 Code
+                              </th>
+                              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                                 Person to See
+                              </th>
+                              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                 Status
+                              </th>
+                              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                                 Sign-In Time
+                              </th>
+                              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                                 ID Card
+                              </th>
+                              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                 Timer Status
+                              </th>
+                              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                 Actions
+                              </th>
                            </tr>
-                        ))}
-                     </tbody>
-                  </table>
-                  {Array.isArray(guests) && guests.length === 0 && (
-                     <div className="text-center py-8 text-gray-500">
-                        No guests found
-                     </div>
-                  )}
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                           {Array.isArray(guests) && guests.map((guest) => (
+                              <tr key={guest._id}>
+                                 <td className="px-2 sm:px-4 py-3">
+                                    <div>
+                                       <div className="text-sm font-medium text-gray-900 truncate max-w-[120px]">{guest.guestName}</div>
+                                       <div className="text-xs text-gray-500 sm:hidden">{guest.guestCode}</div>
+                                       <div className="text-xs text-gray-500 truncate max-w-[120px]">{guest.guestPhone}</div>
+                                    </div>
+                                 </td>
+                                 <td className="px-2 sm:px-4 py-3 text-sm font-mono text-gray-900 hidden sm:table-cell">
+                                    {guest.guestCode}
+                                 </td>
+                                 <td className="px-2 sm:px-4 py-3 text-sm text-gray-900 hidden md:table-cell">
+                                    <div className="truncate max-w-[100px]">{guest.personToSee}</div>
+                                 </td>
+                                 <td className="px-2 sm:px-4 py-3">
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${guest.status === 'signed-in'
+                                          ? 'bg-green-100 text-green-800'
+                                          : guest.status === 'signed-out'
+                                             ? 'bg-gray-100 text-gray-800'
+                                             : 'bg-red-100 text-red-800'
+                                       }`}>
+                                       {guest.status === 'signed-in' ? 'In' : guest.status === 'signed-out' ? 'Out' : 'Exp'}
+                                    </span>
+                                 </td>
+                                 <td className="px-2 sm:px-4 py-3 text-xs text-gray-900 hidden lg:table-cell">
+                                    {new Date(guest.signInTime).toLocaleString('en-US', {
+                                       month: 'short',
+                                       day: 'numeric',
+                                       hour: '2-digit',
+                                       minute: '2-digit'
+                                    })}
+                                 </td>
+                                 <td className="px-2 sm:px-4 py-3 text-xs text-gray-900 hidden md:table-cell">
+                                    {guest.idCardAssigned ? (
+                                       <span className="text-green-600">✓ {guest.idCardNumber}</span>
+                                    ) : (
+                                       <span className="text-orange-600">Pending</span>
+                                    )}
+                                 </td>
+                                 <td className="px-2 sm:px-4 py-3 text-xs">
+                                    {guest.status === 'signed-in' && (
+                                       <div className={`${isGuestExpired(guest) ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>
+                                          <div className="whitespace-nowrap">{getTimeRemaining(guest)}</div>
+                                          {isGuestExpired(guest) && (
+                                             <div className="text-xs text-red-500 mt-1">
+                                                ⚠️ Expired
+                                             </div>
+                                          )}
+                                       </div>
+                                    )}
+                                    {guest.status !== 'signed-in' && (
+                                       <span className="text-gray-400">-</span>
+                                    )}
+                                 </td>
+                                 <td className="px-2 sm:px-4 py-3">
+                                    <div className="flex flex-col sm:flex-row gap-1">
+                                       {/* Assign ID Card Button */}
+                                       {!guest.idCardAssigned && guest.status === 'signed-in' && (
+                                          <button
+                                             onClick={() => {
+                                                const idCardNumber = prompt('Enter ID Card Number:');
+                                                if (idCardNumber && guest._id) {
+                                                   assignIdCard(guest._id, idCardNumber);
+                                                }
+                                             }}
+                                             className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium whitespace-nowrap"
+                                             title="Assign ID Card"
+                                          >
+                                             ID
+                                          </button>
+                                       )}
+
+                                       {/* Sign Out Button */}
+                                       {guest.status === 'signed-in' && (
+                                          <button
+                                             onClick={() => guest._id && signOutGuest(guest._id)}
+                                             className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-medium whitespace-nowrap"
+                                             title="Sign Out Guest"
+                                          >
+                                             Out
+                                          </button>
+                                       )}
+
+                                       {/* Extend Visit Button */}
+                                       {guest.status === 'signed-in' && (
+                                          <button
+                                             onClick={() => {
+                                                const additional = prompt('Extend visit by how many minutes?', '30');
+                                                if (additional && guest._id) {
+                                                   const minutes = parseInt(additional);
+                                                   if (!isNaN(minutes) && minutes > 0) {
+                                                      extendVisit(guest._id, minutes);
+                                                   }
+                                                }
+                                             }}
+                                             className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${isGuestExpired(guest)
+                                                   ? 'bg-orange-500 hover:bg-orange-600 text-white animate-pulse'
+                                                   : 'bg-gray-500 hover:bg-gray-600 text-white'
+                                                }`}
+                                             title={isGuestExpired(guest) ? 'Guest is overdue - Extend visit time' : 'Extend Visit Time'}
+                                          >
+                                             {isGuestExpired(guest) ? '⏰' : 'Ext'}
+                                          </button>
+                                       )}
+
+                                       {/* View Details Button */}
+                                       <button
+                                          onClick={() => {
+                                             setSelectedGuest(guest);
+                                             setShowDetailsModal(true);
+                                          }}
+                                          className="bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 rounded text-xs font-medium whitespace-nowrap"
+                                          title="View Guest Details"
+                                       >
+                                          📋
+                                       </button>
+                                    </div>
+                                 </td>
+                              </tr>
+                           ))}
+                        </tbody>
+                     </table>
+                     {Array.isArray(guests) && guests.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                           No guests found
+                        </div>
+                     )}
+                  </div>
                </div>
             </div>
          </div>
@@ -523,10 +538,10 @@ export default function AdminDashboard() {
                      <div>
                         <label className="block text-sm font-medium text-gray-700">Status</label>
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${selectedGuest.status === 'signed-in'
-                              ? 'bg-green-100 text-green-800'
-                              : selectedGuest.status === 'signed-out'
-                                 ? 'bg-gray-100 text-gray-800'
-                                 : 'bg-red-100 text-red-800'
+                           ? 'bg-green-100 text-green-800'
+                           : selectedGuest.status === 'signed-out'
+                              ? 'bg-gray-100 text-gray-800'
+                              : 'bg-red-100 text-red-800'
                            }`}>
                            {selectedGuest.status}
                         </span>
