@@ -1,0 +1,46 @@
+services:
+  # Backend API Service
+  - type: web
+    name: guest-management-api
+    env: node
+    region: oregon
+    plan: starter
+    buildCommand: cd server && npm install && npm run build
+    startCommand: cd server && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CLIENT_URL
+        fromService:
+          type: web
+          name: guest-management-frontend
+          property: url
+      - key: MONGODB_URI
+        sync: false  # Set this in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+        sync: false
+
+  # Frontend Service
+  - type: web
+    name: guest-management-frontend
+    env: node
+    region: oregon
+    plan: starter
+    buildCommand: cd client && npm install && npm run build
+    startCommand: cd client && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: guest-management-api
+          property: url
+
+databases:
+  # MongoDB Atlas will be used, so no database service needed here
+  # Just configure MONGODB_URI in environment variables

@@ -123,6 +123,35 @@ npm run check:mongodb
 4. Test thoroughly
 5. Submit a pull request
 
+## Deployment
+
+### Render (Recommended)
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+
+**Quick Deploy:**
+1. Push to GitHub
+2. Connect repository to Render
+3. Deploy using the included `render.yaml`
+4. Configure environment variables
+
+### Other Platforms
+The application can also be deployed on:
+- **Vercel** (Frontend) + **Railway** (Backend)
+- **Netlify** (Frontend) + **Heroku** (Backend)
+- **Docker** containers
+- **AWS**, **Google Cloud**, or **Azure**
+
+## QR Code Architecture
+
+Each organization gets unique QR codes that link to:
+```
+https://your-domain.com/guest/signin/[organizationId]
+```
+
+- **Integrated**: QR codes point to your main application (not separate)
+- **Secure**: Organization ID validates access
+- **Scalable**: Unlimited organizations supported
+
 ## License
 
 MIT License - see LICENSE file for details

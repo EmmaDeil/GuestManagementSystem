@@ -20,6 +20,7 @@ export default function AdminRegister() {
    });
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState('');
+   const [successMessage, setSuccessMessage] = useState('');
 
    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
@@ -54,6 +55,7 @@ export default function AdminRegister() {
       e.preventDefault();
       setLoading(true);
       setError('');
+      setSuccessMessage('');
 
       // Validation
       if (formData.password !== formData.confirmPassword) {
@@ -91,8 +93,10 @@ export default function AdminRegister() {
 
          if (response.ok) {
             // Registration successful
-            alert('Organization registered successfully! Please login.');
-            router.push('/admin');
+            setSuccessMessage('Organization registered successfully! Please login.');
+            setTimeout(() => {
+               router.push('/admin');
+            }, 2000);
          } else {
             setError(data.message || 'Registration failed');
          }
@@ -120,6 +124,12 @@ export default function AdminRegister() {
                {error && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
                      <span className="block sm:inline">{error}</span>
+                  </div>
+               )}
+
+               {successMessage && (
+                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative" role="alert">
+                     <span className="block sm:inline">{successMessage}</span>
                   </div>
                )}
 

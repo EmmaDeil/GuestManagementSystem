@@ -84,5 +84,15 @@ export interface DashboardStats {
   pendingIdAssignments: number;
 }
 
+export interface GuestsListResponse {
+  guests: Guest[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
 export type GuestStatus = 'signed-in' | 'signed-out' | 'expired';
 export type OrganizationRole = 'admin' | 'security' | 'staff';

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Guest, Organization, DashboardStats, ApiResponse } from '../../../types';
+import { Guest, Organization, DashboardStats, GuestsListResponse, ApiResponse } from '../../../types';
 
 export default function AdminDashboard() {
    const router = useRouter();
@@ -45,14 +45,16 @@ export default function AdminDashboard() {
          ]);
 
          const statsData: ApiResponse<DashboardStats> = await statsRes.json();
-         const guestsData: ApiResponse<Guest[]> = await guestsRes.json();
+         const guestsData: ApiResponse<GuestsListResponse> = await guestsRes.json();
 
          if (statsData.success && statsData.data) {
             setStats(statsData.data);
          }
 
-         if (guestsData.success && guestsData.data) {
-            setGuests(guestsData.data);
+         if (guestsData.success && guestsData.data && guestsData.data.guests) {
+            setGuests(Array.isArray(guestsData.data.guests) ? guestsData.data.guests : []);
+         } else {
+            setGuests([]); // Ensure guests is always an array
          }
       } catch (err) {
          setError('Failed to load dashboard data');
@@ -194,7 +196,7 @@ export default function AdminDashboard() {
                   </button>
                   {qrCodeUrl && (
                      <div className="border-2 border-gray-200 rounded-lg p-4">
-                        <Image src={qrCodeUrl} alt="QR Code" width={128} height={128} className="w-32 h-32" />
+                        <Image src={qrCodeUrl} alt="QR Code" width={128} height={128} className="w-36 h-32" />
                         <p className="text-sm text-gray-600 mt-2 text-center">Guest Sign-In QR Code</p>
                      </div>
                   )}
@@ -234,7 +236,7 @@ export default function AdminDashboard() {
                         </tr>
                      </thead>
                      <tbody className="bg-white divide-y divide-gray-200">
-                        {guests.map((guest) => (
+                        {Array.isArray(guests) && guests.map((guest) => (
                            <tr key={guest._id}>
                               <td className="px-6 py-4 whitespace-nowrap">
                                  <div>
@@ -250,10 +252,10 @@ export default function AdminDashboard() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${guest.status === 'signed-in'
-                                       ? 'bg-green-100 text-green-800'
-                                       : guest.status === 'signed-out'
-                                          ? 'bg-gray-100 text-gray-800'
-                                          : 'bg-red-100 text-red-800'
+                                    ? 'bg-green-100 text-green-800'
+                                    : guest.status === 'signed-out'
+                                       ? 'bg-gray-100 text-gray-800'
+                                       : 'bg-red-100 text-red-800'
                                     }`}>
                                     {guest.status}
                                  </span>
@@ -287,7 +289,7 @@ export default function AdminDashboard() {
                         ))}
                      </tbody>
                   </table>
-                  {guests.length === 0 && (
+                  {Array.isArray(guests) && guests.length === 0 && (
                      <div className="text-center py-8 text-gray-500">
                         No guests found
                      </div>
