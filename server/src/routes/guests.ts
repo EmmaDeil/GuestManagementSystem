@@ -255,7 +255,7 @@ router.patch('/:guestId/assign-id', authenticateToken, async (req: any, res) => 
 router.patch('/:id/signout', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const organizationId = (req as any).organizationId;
+    const organizationId = (req as any).organization._id;
 
     const guest = await Guest.findOne({ _id: id, organizationId });
     if (!guest) {
@@ -298,7 +298,7 @@ router.patch('/:id/extend', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { additionalMinutes } = req.body;
-    const organizationId = (req as any).organizationId;
+    const organizationId = (req as any).organization._id;
 
     if (!additionalMinutes || additionalMinutes <= 0) {
       return res.status(400).json({
@@ -337,6 +337,70 @@ router.patch('/:id/extend', authenticateToken, async (req, res) => {
     res.json(response);
   } catch (error: any) {
     console.error('Extend visit error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Export guests data with date range filtering
+router.get('/export', authenticateToken, async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const organizationId = (req as any).organization._id;
+
+    // Build query with date range filtering
+    const query: any = { organizationId };
+    
+    if (startDate || endDate) {
+      query.signInTime = {};
+      if (startDate) {
+        query.signInTime.$gte = new Date(startDate as string);
+      }
+      if (endDate) {
+        // Add one day to include the end date
+        const endDateTime = new Date(endDate as string);
+        endDateTime.setDate(endDateTime.getDate() + 1);
+        query.signInTime.$lt = endDateTime;
+      }
+    }
+
+    const guests = await Guest.find(query)
+      .populate('organizationId', 'name')
+      .sort({ signInTime: -1 });
+
+    // Format data for export
+    const exportData = guests.map(guest => {
+      const populatedOrg = guest.organizationId as any;
+      return {
+        guestName: guest.guestName || 'N/A',
+        guestPhone: guest.guestPhone || 'N/A', 
+        guestEmail: guest.guestEmail || 'Not provided',
+        guestCode: guest.guestCode || 'N/A',
+        location: guest.location || 'N/A',
+        personToSee: guest.personToSee || 'N/A',
+        purpose: guest.purpose || 'Not specified',
+        signInTime: guest.signInTime || null,
+        signOutTime: guest.signOutTime || null,
+        expectedDuration: guest.expectedDuration || 0,
+        status: guest.status || 'Unknown',
+        idCardAssigned: Boolean(guest.idCardAssigned),
+        idCardNumber: guest.idCardNumber || 'Not assigned',
+        organization: populatedOrg?.name || 'Unknown'
+      };
+    });
+
+    const response: ApiResponse = {
+      success: true,
+      message: 'Guest data exported successfully',
+      data: exportData
+    };
+
+    res.json(response);
+  } catch (error: any) {
+    console.error('Export guests error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',

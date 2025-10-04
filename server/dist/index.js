@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
 const database_1 = __importDefault(require("./config/database"));
 // Import routes
 const auth_1 = __importDefault(require("./routes/auth"));
@@ -41,6 +42,28 @@ app.use('/api/organizations', organizations_1.default);
 app.use('/api/guests', guests_1.default);
 app.use('/api/qr', qr_1.default);
 app.use('/api/dashboard', dashboard_1.default);
+// In production, serve the Next.js static files
+if (process.env.NODE_ENV === 'production') {
+    // Serve static files from the Next.js build
+    app.use(express_1.default.static(path_1.default.join(__dirname, '../../client/.next/static'), {
+        setHeaders: (res, path) => {
+            if (path.endsWith('.js') || path.endsWith('.css')) {
+                res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+            }
+        }
+    }));
+    // Serve Next.js pages
+    app.use(express_1.default.static(path_1.default.join(__dirname, '../../client/out')));
+    // Handle client-side routing - send all non-API requests to index.html
+    app.get('*', (req, res) => {
+        if (!req.path.startsWith('/api')) {
+            res.sendFile(path_1.default.join(__dirname, '../../client/out/index.html'));
+        }
+        else {
+            res.status(404).json({ success: false, message: 'API endpoint not found' });
+        }
+    });
+}
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);

@@ -13,7 +13,7 @@ const GuestSchema: Schema = new Schema({
   guestPhone: {
     type: String,
     required: [true, 'Guest phone is required'],
-    match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
+    match: [/^\d{11}$/, 'Please enter a valid 11-digit phone number']
   },
   guestEmail: {
     type: String,

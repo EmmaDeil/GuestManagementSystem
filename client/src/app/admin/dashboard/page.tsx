@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Guest, Organization, DashboardStats, GuestsListResponse, ApiResponse } from '../../../types';
@@ -17,36 +17,13 @@ export default function AdminDashboard() {
    const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
    const [showDetailsModal, setShowDetailsModal] = useState(false);
    const [currentTime, setCurrentTime] = useState(new Date());
+   const [showExportModal, setShowExportModal] = useState(false);
+   const [exportStartDate, setExportStartDate] = useState('');
+   const [exportEndDate, setExportEndDate] = useState('');
+   const [isExporting, setIsExporting] = useState(false);
+   const autoSigningOutRef = useRef<Set<string>>(new Set());
 
-   useEffect(() => {
-      const token = localStorage.getItem('admin_token');
-      const orgData = localStorage.getItem('organization');
-
-      if (!token || !orgData) {
-         router.push('/admin');
-         return;
-      }
-
-      try {
-         const org = JSON.parse(orgData);
-         setOrganization(org);
-         fetchDashboardData(token);
-      } catch (err) {
-         console.error('Error parsing organization data:', err);
-         router.push('/admin');
-      }
-   }, [router]);
-
-   // Real-time timer updates
-   useEffect(() => {
-      const interval = setInterval(() => {
-         setCurrentTime(new Date());
-      }, 1000); // Update every second
-
-      return () => clearInterval(interval);
-   }, []);
-
-   const fetchDashboardData = async (token: string) => {
+   const fetchDashboardData = useCallback(async (token: string) => {
       try {
          const [statsRes, guestsRes] = await Promise.all([
             fetch(`${config.apiUrl}/api/dashboard/stats`, {
@@ -75,7 +52,95 @@ export default function AdminDashboard() {
       } finally {
          setIsLoading(false);
       }
-   };
+   }, []);
+
+   useEffect(() => {
+      const token = localStorage.getItem('admin_token');
+      const orgData = localStorage.getItem('organization');
+
+      if (!token || !orgData) {
+         router.push('/admin');
+         return;
+      }
+
+      try {
+         const org = JSON.parse(orgData);
+         setOrganization(org);
+         fetchDashboardData(token);
+      } catch (err) {
+         console.error('Error parsing organization data:', err);
+         router.push('/admin');
+      }
+   }, [router, fetchDashboardData]);
+
+   // Real-time timer updates with auto-expiry
+   useEffect(() => {
+      const autoSignOutExpiredGuest = async (guestId: string) => {
+         // Check if we're already trying to sign out this guest
+         if (autoSigningOutRef.current.has(guestId)) {
+            return;
+         }
+
+         const token = localStorage.getItem('admin_token');
+         if (!token) return;
+
+         // Mark guest as being processed
+         autoSigningOutRef.current.add(guestId);
+
+         try {
+            const response = await fetch(`${config.apiUrl}/api/guests/${guestId}/signout`, {
+               method: 'PATCH',
+               headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+               }
+            });
+
+            if (response.ok) {
+               const result: ApiResponse = await response.json();
+               if (result.success) {
+                  // Silently refresh data without showing error
+                  const token = localStorage.getItem('admin_token');
+                  if (token) {
+                     fetchDashboardData(token);
+                  }
+               }
+            } else if (response.status === 404) {
+               // Guest not found - probably already signed out, just refresh data
+               const token = localStorage.getItem('admin_token');
+               if (token) {
+                  fetchDashboardData(token);
+               }
+            }
+         } catch {
+            // Silently handle auto-expiry errors
+            console.log('Auto-expiry handled for guest:', guestId);
+         } finally {
+            // Remove guest from processing set
+            autoSigningOutRef.current.delete(guestId);
+         }
+      };
+
+      const interval = setInterval(() => {
+         const now = new Date();
+         setCurrentTime(now);
+
+         // Auto-expire guests whose time has run out
+         guests.forEach(guest => {
+            if (guest.status === 'signed-in') {
+               const signInTime = new Date(guest.signInTime);
+               const expectedEndTime = new Date(signInTime.getTime() + guest.expectedDuration * 60 * 1000);
+
+               if (now > expectedEndTime) {
+                  // Auto sign out expired guest (only if not already being processed)
+                  autoSignOutExpiredGuest(guest._id!);
+               }
+            }
+         });
+      }, 1000); // Update every second
+
+      return () => clearInterval(interval);
+   }, [guests, fetchDashboardData]);
 
    const generateQRCode = async () => {
       const token = localStorage.getItem('admin_token');
@@ -155,6 +220,10 @@ export default function AdminDashboard() {
             }
          });
 
+         if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+         }
+
          const result: ApiResponse = await response.json();
 
          if (result.success) {
@@ -166,8 +235,8 @@ export default function AdminDashboard() {
             setError(result.message || 'Failed to sign out guest');
          }
       } catch (err) {
-         setError('Failed to sign out guest');
-         console.error('Error signing out guest:', err);
+         console.error('Sign out error:', err);
+         setError('Failed to sign out guest. Please check if the guest exists.');
       }
    };
 
@@ -218,6 +287,122 @@ export default function AdminDashboard() {
       }
 
       return `${diffMinutes} min remaining`;
+   };
+
+   const exportGuestsData = async () => {
+      const token = localStorage.getItem('admin_token');
+      if (!token) return;
+
+      // Validate required fields
+      if (!exportStartDate || !exportEndDate) {
+         setError('Both start date and end date are required for export');
+         return;
+      }
+
+      // Validate date range
+      if (new Date(exportStartDate) > new Date(exportEndDate)) {
+         setError('Start date cannot be after end date');
+         return;
+      }
+
+      setIsExporting(true);
+      setError(null);
+      try {
+         // Build query parameters
+         const params = new URLSearchParams();
+         params.append('startDate', exportStartDate);
+         params.append('endDate', exportEndDate);
+
+         const queryString = params.toString();
+         const url = queryString
+            ? `${config.apiUrl}/api/guests/export?${queryString}`
+            : `${config.apiUrl}/api/guests/export`;
+
+         const response = await fetch(url, {
+            headers: {
+               'Authorization': `Bearer ${token}`
+            }
+         });
+
+         if (!response.ok) {
+            throw new Error('Failed to export data');
+         }
+
+         const data = await response.json();
+
+         if (data.success && data.data) {
+            // Convert to CSV
+            const csvContent = convertToCSV(data.data);
+
+            // Download file
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // Generate filename with date range
+            const startStr = exportStartDate || 'all';
+            const endStr = exportEndDate || 'current';
+            link.download = `guests_${startStr}_to_${endStr}.csv`;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            setShowExportModal(false);
+            setExportStartDate('');
+            setExportEndDate('');
+         } else {
+            setError('No data found for the selected criteria');
+         }
+      } catch (err) {
+         setError('Failed to export guests data');
+         console.error('Export error:', err);
+      } finally {
+         setIsExporting(false);
+      }
+   };
+
+   const convertToCSV = (data: Guest[]): string => {
+      const headers = [
+         'Guest Name',
+         'Phone',
+         'Email',
+         'Guest Code',
+         'Location',
+         'Person to See',
+         'Purpose',
+         'Sign-In Time',
+         'Sign-Out Time',
+         'Expected Duration (min)',
+         'Status',
+         'ID Card Assigned',
+         'ID Card Number'
+      ];
+
+      const rows = data.map(guest => [
+         guest.guestName || 'N/A',
+         guest.guestPhone || 'N/A',
+         guest.guestEmail || 'Not provided',
+         guest.guestCode || 'N/A',
+         guest.location || 'N/A',
+         guest.personToSee || 'N/A',
+         guest.purpose || 'Not specified',
+         guest.signInTime ? new Date(guest.signInTime).toLocaleString() : 'N/A',
+         guest.signOutTime ? new Date(guest.signOutTime).toLocaleString() : 'Still signed in',
+         guest.expectedDuration || 'N/A',
+         guest.status || 'Unknown',
+         guest.idCardAssigned ? 'Yes' : 'No',
+         guest.idCardNumber || 'Not assigned'
+      ]);
+
+      const csvContent = [
+         headers.join(','),
+         ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      return csvContent;
    }; if (isLoading) {
       return (
          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -296,8 +481,14 @@ export default function AdminDashboard() {
 
             {/* Guests Table */}
             <div className="bg-white rounded-lg shadow">
-               <div className="px-6 py-4 border-b border-gray-200">
+               <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                   <h2 className="text-lg font-semibold text-gray-900">Recent Guests</h2>
+                  <button
+                     onClick={() => setShowExportModal(true)}
+                     className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                  >
+                     📊 Export Data
+                  </button>
                </div>
                <div className="overflow-hidden">
                   <div className="overflow-x-auto">
@@ -348,10 +539,10 @@ export default function AdminDashboard() {
                                  </td>
                                  <td className="px-2 sm:px-4 py-3">
                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${guest.status === 'signed-in'
-                                          ? 'bg-green-100 text-green-800'
-                                          : guest.status === 'signed-out'
-                                             ? 'bg-gray-100 text-gray-800'
-                                             : 'bg-red-100 text-red-800'
+                                       ? 'bg-green-100 text-green-800'
+                                       : guest.status === 'signed-out'
+                                          ? 'bg-gray-100 text-gray-800'
+                                          : 'bg-red-100 text-red-800'
                                        }`}>
                                        {guest.status === 'signed-in' ? 'In' : guest.status === 'signed-out' ? 'Out' : 'Exp'}
                                     </span>
@@ -428,8 +619,8 @@ export default function AdminDashboard() {
                                                 }
                                              }}
                                              className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${isGuestExpired(guest)
-                                                   ? 'bg-orange-500 hover:bg-orange-600 text-white animate-pulse'
-                                                   : 'bg-gray-500 hover:bg-gray-600 text-white'
+                                                ? 'bg-orange-500 hover:bg-orange-600 text-white animate-pulse'
+                                                : 'bg-gray-500 hover:bg-gray-600 text-white'
                                                 }`}
                                              title={isGuestExpired(guest) ? 'Guest is overdue - Extend visit time' : 'Extend Visit Time'}
                                           >
@@ -466,7 +657,7 @@ export default function AdminDashboard() {
 
          {/* Guest Details Modal */}
          {showDetailsModal && selectedGuest && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50">
                <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
                   <div className="flex justify-between items-center mb-4">
                      <h3 className="text-lg font-semibold text-gray-900">Guest Details</h3>
@@ -574,6 +765,74 @@ export default function AdminDashboard() {
                         className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm"
                      >
                         Close
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Export Data Modal */}
+         {showExportModal && (
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50">
+               <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                  <div className="flex justify-between items-center mb-4">
+                     <h3 className="text-lg font-semibold text-gray-900">Export Guests Data</h3>
+                     <button
+                        onClick={() => setShowExportModal(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                     >
+                        ✕
+                     </button>
+                  </div>
+
+                  <div className="space-y-4">
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
+                        <input
+                           type="date"
+                           value={exportStartDate}
+                           onChange={(e) => setExportStartDate(e.target.value)}
+                           required
+                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                     </div>
+
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">End Date *</label>
+                        <input
+                           type="date"
+                           value={exportEndDate}
+                           onChange={(e) => setExportEndDate(e.target.value)}
+                           required
+                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                     </div>
+
+                     <div className="text-sm text-gray-600">
+                        Export will include all guest data for the selected date range. Both start and end dates are required.
+                     </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end space-x-3">
+                     <button
+                        onClick={() => setShowExportModal(false)}
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm"
+                     >
+                        Cancel
+                     </button>
+                     <button
+                        onClick={exportGuestsData}
+                        disabled={isExporting || !exportStartDate || !exportEndDate}
+                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm flex items-center"
+                     >
+                        {isExporting ? (
+                           <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Exporting...
+                           </>
+                        ) : (
+                           '📊 Export CSV'
+                        )}
                      </button>
                   </div>
                </div>

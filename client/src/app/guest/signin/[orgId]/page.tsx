@@ -213,13 +213,13 @@ export default function GuestSignInPage() {
                         {...register('guestPhone', {
                            required: 'Phone number is required',
                            pattern: {
-                              value: /^[\+]?[1-9][\d]{0,15}$/,
-                              message: 'Please enter a valid phone number'
+                              value: /^\d{11}$/,
+                              message: 'Phone number must be exactly 11 digits'
                            }
                         })}
                         type="tel"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter your phone number"
+                        placeholder="e.g., 01334756959 (11 digits)"
                      />
                      {errors.guestPhone && (
                         <p className="text-red-600 text-sm mt-1">{errors.guestPhone.message}</p>
