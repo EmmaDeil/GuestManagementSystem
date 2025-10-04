@@ -14,8 +14,15 @@ import dashboardRoutes from './routes/dashboard';
 // Load environment variables
 dotenv.config();
 
+console.log('🔧 Starting Guest Management Server...');
+console.log(`📝 NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+console.log(`🔗 MONGODB_URI: ${process.env.MONGODB_URI ? 'Configured' : 'Not configured'}`);
+console.log(`🌐 CLIENT_URL: ${process.env.CLIENT_URL || 'http://localhost:3000'}`);
+
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = parseInt(process.env.PORT || '5000');
+
+console.log(`🚪 Configured PORT: ${PORT}`);
 
 // Connect to MongoDB
 connectDB();
@@ -56,8 +63,15 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🌐 Server listening on all interfaces (0.0.0.0:${PORT})`);
+}).on('error', (err: any) => {
+  console.error('❌ Server failed to start:', err.message);
+  if (err.code === 'EADDRINUSE') {
+    console.log(`🚫 Port ${PORT} is already in use`);
+  }
+  process.exit(1);
 });
