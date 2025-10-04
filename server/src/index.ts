@@ -46,30 +46,6 @@ app.use('/api/guests', guestRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
-// In production, serve the Next.js static files
-if (process.env.NODE_ENV === 'production') {
-  // Serve static files from the Next.js build
-  app.use(express.static(path.join(__dirname, '../../client/.next/static'), {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.js') || path.endsWith('.css')) {
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      }
-    }
-  }));
-  
-  // Serve Next.js pages
-  app.use(express.static(path.join(__dirname, '../../client/out')));
-  
-  // Handle client-side routing - send all non-API requests to index.html
-  app.get('/*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(__dirname, '../../client/out/index.html'));
-    } else {
-      res.status(404).json({ success: false, message: 'API endpoint not found' });
-    }
-  });
-}
-
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
