@@ -145,7 +145,7 @@ export default function AdminLoginPage() {
             </div>
 
             {/* Demo Info */}
-            <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            {/* <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                <h3 className="text-sm font-medium text-yellow-800 mb-2">Demo Credentials</h3>
                <div className="text-sm text-yellow-700 space-y-1">
                   <p><strong>Email:</strong> demo@organization.com</p>
@@ -154,7 +154,7 @@ export default function AdminLoginPage() {
                      These are demo credentials for testing the system
                   </p>
                </div>
-            </div>
+            </div> */}
          </div>
       </div>
    );
