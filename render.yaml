@@ -34,8 +34,8 @@ services:
     env: node
     region: oregon
     plan: starter
-    buildCommand: cd client && npm install && NODE_ENV=production npm run render-build
-    startCommand: cd client && NODE_ENV=production npm run render-start
+    buildCommand: cd client && npm install && npm run render-build
+    startCommand: cd client && npm run render-start
     envVars:
       - key: NODE_ENV
         value: production
