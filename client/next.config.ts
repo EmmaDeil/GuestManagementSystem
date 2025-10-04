@@ -46,6 +46,7 @@ const nextConfig: NextConfig = {
     CUSTOM_KEY: "my-value",
     BUILD_TIME: new Date().toISOString(),
     BUILD_ENV: nodeEnv,
+    BUILD_VERSION: "1.0.1", // Force clean rebuild
   },
   
   // TypeScript configuration
