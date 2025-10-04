@@ -1,4 +1,12 @@
 export default function HomePage() {
+  // Debug logging for production
+  if (typeof window !== 'undefined') {
+    console.log('🏠 Home Page Loaded');
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
+    console.log('Client URL:', process.env.NEXT_PUBLIC_CLIENT_URL);
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
