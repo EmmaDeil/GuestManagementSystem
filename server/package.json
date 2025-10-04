@@ -5,11 +5,17 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts",
-    "seed:demo": "ts-node src/scripts/seed-demo.ts",
-    "check:mongodb": "ts-node src/scripts/check-mongodb.ts",
+    "build:clean": "rmdir /s /q dist 2>nul && tsc || tsc",
+    "start": "cross-env NODE_ENV=production node dist/index.js",
+    "start:dev": "cross-env NODE_ENV=development node dist/index.js",
+    "dev": "cross-env NODE_ENV=development nodemon src/index.ts",
+    "seed:demo": "cross-env NODE_ENV=development ts-node src/scripts/seed-demo.ts",
+    "seed:demo:prod": "cross-env NODE_ENV=production ts-node src/scripts/seed-demo.ts",
+    "check:mongodb": "cross-env NODE_ENV=development ts-node src/scripts/check-mongodb.ts",
+    "check:mongodb:prod": "cross-env NODE_ENV=production ts-node src/scripts/check-mongodb.ts",
     "setup": "npm run check:mongodb && npm run seed:demo",
+    "setup:prod": "npm run check:mongodb:prod && npm run seed:demo:prod",
+    "debug:env": "node -e \"console.log('NODE_ENV:', process.env.NODE_ENV); console.log('PORT:', process.env.PORT); console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'set' : 'not set'); console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'set' : 'not set');\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -40,6 +46,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2"
   }
