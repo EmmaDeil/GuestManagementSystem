@@ -7,10 +7,8 @@ const nextConfig: NextConfig = {
   // Fix the workspace root warning by explicitly setting the project root
   outputFileTracingRoot: path.join(__dirname, "../"),
   
-  // Use different output strategy based on environment
-  // For development: normal Next.js server
-  // For production: standalone for Render deployment
-  output: isDevelopment ? undefined : 'standalone',
+  // Use normal output for now to avoid standalone issues
+  // output: isDevelopment ? undefined : 'standalone',
   trailingSlash: true,
   
   // Image optimization
