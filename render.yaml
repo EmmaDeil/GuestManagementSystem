@@ -14,7 +14,7 @@ services:
       - key: PORT
         value: 10000
       - key: CLIENT_URL
-        value: https://guestmanagementsystem.onrender.com
+        value: https://gmsapp-blue.vercel.app  # Updated for Vercel deployment
       - key: MONGODB_URI
         sync: false  # Set this in Render dashboard - MongoDB Atlas connection string
       - key: JWT_SECRET

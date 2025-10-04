@@ -47,11 +47,33 @@ connectDB();
 // Middleware
 console.log('🔧 Setting up middleware...');
 
-const corsOrigin = process.env.CLIENT_URL || 'http://localhost:3000';
-console.log(`🌐 CORS Origin: ${corsOrigin}`);
+// CORS configuration - support multiple origins
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:3000',
+  'http://localhost:3000',
+  'https://gmsapp-blue.vercel.app',
+].filter(Boolean);
+
+console.log(`🌐 CORS Allowed Origins:`, allowedOrigins);
 
 app.use(cors({
-  origin: corsOrigin,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, or same-origin)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list (remove trailing slashes for comparison)
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    const isAllowed = allowedOrigins.some(allowed => 
+      allowed.replace(/\/$/, '') === normalizedOrigin
+    );
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️  CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
