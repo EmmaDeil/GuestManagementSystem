@@ -17,6 +17,16 @@ interface GuestFormData {
 }
 
 interface Organization {
+   guestName: string;
+   guestPhone: string;
+   guestEmail?: string;
+   location: string;
+   personToSee: string;
+   purpose?: string;
+   expectedDuration: number;
+}
+
+interface Organization {
    _id: string;
    name: string;
    locations: string[];

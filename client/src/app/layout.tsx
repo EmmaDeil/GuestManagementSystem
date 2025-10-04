@@ -15,7 +15,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Guest Management System",
   description: "Modern guest registration and management system with QR code integration",
+  icons: {
+    icon: "/logo.png",
+  },
   keywords: ["guest management", "visitor registration", "QR code", "organization"],
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({

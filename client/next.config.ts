@@ -1,26 +1,34 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 const nextConfig: NextConfig = {
   // Fix the workspace root warning by explicitly setting the project root
   outputFileTracingRoot: path.join(__dirname, "../"),
   
-  // Enable static export for single-service deployment in production
-  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
+  // Use different output strategy based on environment
+  // For development: normal Next.js server
+  // For production: standalone for Render deployment
+  output: isDevelopment ? undefined : 'standalone',
   trailingSlash: true,
   
+  // Image optimization
+  images: {
+    unoptimized: !isDevelopment,
+  },
+  
   // Proxy API requests to backend (only in development)
-  async rewrites() {
-    if (process.env.NODE_ENV === 'development') {
+  ...(isDevelopment && {
+    async rewrites() {
       return [
         {
           source: "/api/:path*",
           destination: "http://localhost:5000/api/:path*",
         },
       ];
-    }
-    return [];
-  },
+    },
+  }),
   
   // Environment variables
   env: {

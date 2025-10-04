@@ -15,8 +15,8 @@ export default function AdminRegister() {
       contactPerson: '',
       phone: '',
       address: '',
-      locations: ['Reception', 'Main Office'],
-      staffMembers: ['Reception Staff'],
+      locations: ['Reception', 'Main Office', 'Warehouse', 'Break Room', 'HR Department'],
+      staffMembers: ['Reception Staff', 'John Smith - Manager', 'Jane Doe - HR Director', 'Mike Johnson - IT Lead', 'Sarah Wilson - Operations'],
       minGuestVisitMinutes: 15
    });
    const [loading, setLoading] = useState(false);
@@ -97,7 +97,7 @@ export default function AdminRegister() {
             setSuccessMessage('Organization registered successfully! Please login.');
             setTimeout(() => {
                router.push('/admin');
-            }, 2000);
+            }, 200);
          } else {
             setError(data.message || 'Registration failed');
          }
@@ -354,6 +354,9 @@ export default function AdminRegister() {
                         <option value={15}>15 minutes</option>
                         <option value={30}>30 minutes</option>
                         <option value={60}>1 hour</option>
+                        <option value={120}>2 hours</option>
+                        <option value={240}>4 hours</option>
+                        <option value={480}>8 hours</option>
                      </select>
                   </div>
                </div>
