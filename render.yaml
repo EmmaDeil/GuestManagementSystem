@@ -44,19 +44,25 @@ services:
       - key: HOSTNAME
         value: 0.0.0.0
       - key: NEXT_PUBLIC_API_URL
-        value: https://guestmanagementsystembackend.onrender.com
+        sync: false  # Set this in Render dashboard to avoid URL corruption
       - key: NEXT_PUBLIC_CLIENT_URL
-        value: https://guestmanagementsystem.onrender.com
-      - key: NEXT_PUBLIC_CLIENT_URL
-        value: https://guestmanagementsystem.onrender.com
+        sync: false  # Set this in Render dashboard
 
 # Database Configuration:
 # This app uses MongoDB Atlas (cloud database) instead of a local Render database.
-# Required environment variables that must be set in Render dashboard:
+# 
+# IMPORTANT: Set these environment variables in Render Dashboard (not in this file):
 # 
 # Backend Service (guestmanagementsystembackend):
 # - MONGODB_URI: Your MongoDB Atlas connection string
-# - JWT_SECRET: A secure random string for JWT token signing (generate with: openssl rand -base64 32)
+#   Example: mongodb+srv://username:password@cluster.mongodb.net/guest-management
+# - JWT_SECRET: A secure random string for JWT token signing
+#   Generate with: openssl rand -base64 32
+# 
+# Frontend Service (guestmanagementsystem):
+# - NEXT_PUBLIC_API_URL: https://guestmanagementsystembackend.onrender.com
+#   IMPORTANT: Do NOT include extra "https:" prefix - use exactly as shown above
+# - NEXT_PUBLIC_CLIENT_URL: https://guestmanagementsystem.onrender.com
 # 
 # Optional Email Service Variables (for guest notifications):
 # - EMAIL_HOST: SMTP server hostname
