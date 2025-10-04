@@ -4,7 +4,8 @@
   "description": "Complete Guest Management System with Frontend and Backend",
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
-    "start": "concurrently \"npm run server:start\" \"npm run client:start\"",
+    "start": "cd server && npm start",
+    "start:dev": "concurrently \"npm run server:start\" \"npm run client:start\"",
     "build": "npm run client:build && npm run server:build",
     "build:production": "cd client && npm install && npm run build && cd ../server && npm install && npm run build",
     "server:dev": "cd server && npm run dev",
