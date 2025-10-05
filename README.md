@@ -1,67 +1,170 @@
 # Guest Management System
 
-A modern, scalable web application for managing guest sign-ins and sign-outs in organizations with QR code integration.
+A modern, comprehensive web application for managing guest sign-ins and sign-outs in organizations with QR code integration, real-time notifications, and automated time tracking.
 
-## 🌟 Features
+## 🌟 Key Features
 
+### Guest Management
 - 🎯 **QR Code Guest Sign-in**: Guests scan QR codes to access organization-specific forms
-- 🏢 **Multi-Organization Support**: Each organization has its own isolated data and admin portal
-- 🔐 **Unique Guest Codes**: 6-digit codes generated for each guest
-- 📱 **Responsive Design**: Works seamlessly on mobile, tablet, and desktop
-- 🖨️ **Print & File**: Generate printable guest records
-- ⏱️ **Minimum Visit Time**: Enforce minimum stay duration
-- 🆔 **ID Card Assignment**: Security team can assign ID cards to guests
-- 🔔 **Real-time Notifications**: Security team gets notified of new guests
+- 🏢 **Multi-Organization Support**: Each organization has isolated data and dedicated admin portal
+- 🔐 **Unique Guest Codes**: Auto-generated 6-digit codes for each guest
+- 📱 **Fully Responsive**: Seamless experience across mobile, tablet, and desktop devices
+- ⏱️ **Minimum Visit Time Enforcement**: Configure and enforce minimum stay duration
+- 🆔 **ID Card Management**: Assign and track physical ID cards to guests
+
+### Admin Dashboard
+- 📊 **Real-time Statistics**: Live updates of active guests, total visits, and trends
+- 🔍 **Guest Search & Filter**: Quick access to guest information and history
+- 🖨️ **QR Code Printing**: Generate and print branded QR codes with instructions
+- 📤 **Data Export**: Export guest data to CSV with date range filtering
+- 👁️ **Guest Details Modal**: View comprehensive guest information at a glance
+
+### Smart Notifications & Alerts
+- 🔔 **New Guest Arrival Alerts**: Audio + desktop notifications when guests sign in
+- ⏰ **95% Time Warning System**: Proactive alerts when guest time reaches 95% usage
+- 🔊 **Multi-channel Alerts**: Browser notifications with sound alerts
+- 📢 **Persistent Time Warnings**: Requires admin action to dismiss critical alerts
+
+### Time Management
+- ⏲️ **Auto-expiry System**: Automatic sign-out when time limit is reached
+- 🕐 **Time Extension Modal**: Easy-to-use interface for extending guest visits
+- � **Live Timer Display**: Real-time countdown for each active guest
+- 🚨 **Overdue Indicators**: Visual alerts for guests past their expected duration
+
+### Enhanced User Experience
+- ✨ **Modal-based Workflows**: Professional dialogs for all admin actions (no browser prompts)
+- 🔄 **Auto-refresh**: Dashboard updates every 10 seconds without manual refresh
+- 🎨 **Modern UI/UX**: Clean, intuitive interface with Tailwind CSS
+- ⚡ **Instant Feedback**: Real-time updates and status changes
 
 ## 🛠️ Tech Stack
 
-### Frontend (Client)
-- **Next.js 15.5.4** with TypeScript
-- **Tailwind CSS** for styling
-- **React Hook Form** for form management
-- **Axios** for API requests
-- **QR Code** generation
+### Frontend
+- **Next.js 15.5.4** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+- **React Hooks** - Modern state management
+- **Browser Notification API** - Desktop alerts
+- **Audio API** - Sound notifications
+- **Deployed on Vercel** - Serverless hosting
 
-### Backend (Server)
-- **Express.js 5** with TypeScript
-- **MongoDB Atlas** with Mongoose ODM
-- **JWT** for authentication
-- **BCrypt** for password hashing
-- **Nodemailer** for email notifications
+### Backend
+- **Express.js 5** - Node.js web framework
+- **TypeScript** - Type-safe API development
+- **MongoDB Atlas** - Cloud database
+- **Mongoose ODM** - MongoDB object modeling
+- **JWT** - Secure authentication
+- **BCrypt** - Password hashing
+- **CORS** - Multi-origin support
+- **Deployed on Render** - Cloud platform
 
 ## 📁 Project Structure
 
 ```
 GuestManagementApp/
-├── client/                    # Next.js frontend application
+├── client/                      # Next.js frontend (Vercel)
 │   ├── src/
-│   │   ├── app/              # Next.js app router pages
-│   │   ├── components/       # Reusable React components
-│   │   ├── config/           # Configuration files
-│   │   └── lib/              # Utility functions
-│   ├── package.json
-│   └── next.config.ts
+│   │   ├── app/                # App router pages
+│   │   │   ├── page.tsx        # Landing page
+│   │   │   ├── admin/          # Admin portal
+│   │   │   │   ├── page.tsx    # Login page
+│   │   │   │   └── dashboard/  # Main dashboard
+│   │   │   └── guest/          # Guest pages
+│   │   │       ├── signin/     # QR code sign-in
+│   │   │       └── success/    # Success page
+│   │   ├── components/         # Reusable components
+│   │   ├── config/             # Configuration
+│   │   ├── types/              # TypeScript types
+│   │   └── app/globals.css     # Global styles
+│   ├── public/                 # Static assets
+│   ├── next.config.ts          # Next.js config
+│   ├── tailwind.config.ts      # Tailwind config
+│   └── package.json
 │
-├── server/                    # Express.js backend API
+├── server/                      # Express.js backend (Render)
 │   ├── src/
-│   │   ├── config/           # Database and server config
-│   │   ├── models/           # Mongoose models
-│   │   ├── routes/           # API routes
-│   │   └── scripts/          # Utility scripts
-│   ├── package.json
-│   └── tsconfig.json
+│   │   ├── config/             # Database & server config
+│   │   │   └── database.ts     # MongoDB connection
+│   │   ├── models/             # Mongoose schemas
+│   │   │   ├── Guest.ts        # Guest model
+│   │   │   └── Organization.ts # Organization model
+│   │   ├── routes/             # API endpoints
+│   │   │   ├── guests.ts       # Guest routes
+│   │   │   ├── organizations.ts# Org routes
+│   │   │   ├── qr.ts          # QR code routes
+│   │   │   └── dashboard.ts    # Stats routes
+│   │   ├── middleware/         # Express middleware
+│   │   │   └── auth.ts        # JWT verification
+│   │   ├── scripts/            # Utility scripts
+│   │   └── index.ts           # Server entry point
+│   ├── .env.production         # Production config
+│   ├── .env.development        # Development config
+│   ├── tsconfig.json          # TypeScript config
+│   └── package.json
 │
-├── render.yaml               # Render deployment configuration
-├── .gitignore               # Git ignore rules
-├── .env.production.example  # Example environment variables
-└── README.md                # This file
+├── docs/                       # Documentation
+│   ├── CORS_FIX.md            # CORS configuration guide
+│   ├── DEPLOYMENT_FIX.md      # Deployment troubleshooting
+│   └── RENDER_SETUP.md        # Render setup guide
+│
+├── .gitignore                 # Git ignore patterns
+├── render.yaml                # Render config (legacy)
+└── README.md                  # This file
+```
+
+## 🗄️ Database Schema
+
+### Guest Collection
+```typescript
+{
+  _id: ObjectId,
+  guestName: string,
+  guestPhone: string,
+  guestEmail?: string,
+  guestCode: string,           // 6-digit unique code
+  organizationId: ObjectId,
+  location: string,
+  personToSee: string,
+  purpose?: string,
+  signInTime: Date,
+  signOutTime?: Date,
+  expectedDuration: number,    // minutes
+  minVisitDuration: number,
+  idCardNumber?: string,
+  idCardAssigned: boolean,
+  status: 'signed-in' | 'signed-out' | 'expired',
+  securityNotified: boolean,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Organization Collection
+```typescript
+{
+  _id: ObjectId,
+  name: string,
+  email: string,
+  password: string,            // bcrypt hashed
+  contactPerson: string,
+  phone: string,
+  address: string,
+  locations: string[],
+  staffMembers: string[],
+  minGuestVisitMinutes: number,
+  qrCodeUrl?: string,
+  isActive: boolean,
+  createdAt: Date,
+  updatedAt: Date
+}
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm
-- MongoDB Atlas account (free tier available)
+- **Node.js 18+** and npm
+- **MongoDB Atlas** account (free tier available)
+- Modern web browser with notification support
 
 ### 📦 Installation
 
@@ -76,11 +179,13 @@ GuestManagementApp/
    cd server
    npm install
    
-   # Create .env.development file
+   # Create environment file
    cp .env.production.example .env.development
    
-   # Edit .env.development with your MongoDB connection string
-   # MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/guest-management
+   # Edit .env.development with your configuration:
+   # MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/guestmanagement
+   # JWT_SECRET=your-secret-key
+   # CLIENT_URL=http://localhost:3000
    
    # Build TypeScript
    npm run build
@@ -90,11 +195,14 @@ GuestManagementApp/
    ```bash
    cd ../client
    npm install
+   
+   # Create environment file (if needed)
+   # NEXT_PUBLIC_API_URL will default to http://localhost:5000 in development
    ```
 
 ### 🏃 Running Locally
 
-**Development Mode (with hot reload):**
+**Development Mode (recommended for development):**
 
 Terminal 1 - Backend:
 ```bash
@@ -108,19 +216,21 @@ cd client
 npm run dev  # Runs on http://localhost:3000
 ```
 
-**Production Mode (for testing):**
+**Production Build (for testing):**
 
 ```bash
-# Build and start backend
+# Backend
 cd server
 npm run build
 npm start
 
-# Build and start frontend
+# Frontend (in new terminal)
 cd client
 npm run build
 npm start
 ```
+
+Visit `http://localhost:3000` to access the application.
 
 ### 🗄️ Database Setup
 
@@ -136,199 +246,276 @@ cd server
 npm run check:mongodb
 ```
 
-## 🚀 Deployment (Render.com)
+## 🚀 Deployment
 
-This project is configured for deployment on Render.com with separate frontend and backend services.
+This project uses a **split deployment architecture**:
+- **Frontend**: Deployed on Vercel
+- **Backend**: Deployed on Render.com
+- **Database**: MongoDB Atlas
 
-### Prerequisites
-- GitHub account
-- Render.com account (free tier available)
-- MongoDB Atlas database
+### Live URLs
+- **Frontend (Vercel)**: https://gmsapp-blue.vercel.app
+- **Backend API (Render)**: https://guestmanagementsystembackend.onrender.com
+- **Health Check**: https://guestmanagementsystembackend.onrender.com/api/health
 
-### Deployment Steps
+### Deployment Architecture
 
-1. **Push code to GitHub**
+```
+┌─────────────────┐
+│   Vercel CDN    │  ← Frontend (Next.js Standalone)
+│  Global Edge    │
+└────────┬────────┘
+         │ HTTPS
+         ↓
+┌─────────────────┐
+│  Render.com     │  ← Backend API (Express.js)
+│   Web Service   │
+└────────┬────────┘
+         │ MongoDB Atlas
+         ↓
+┌─────────────────┐
+│ MongoDB Atlas   │  ← Database
+│  Cloud Cluster  │
+└─────────────────┘
+```
+
+### Deploy to Vercel (Frontend)
+
+1. **Push to GitHub**
    ```bash
+   git add .
+   git commit -m "Deploy to production"
    git push origin main
    ```
 
-2. **Create New Web Services on Render**
-   - Go to [Render Dashboard](https://dashboard.render.com)
-   - Click "New +" → "Blueprint"
-   - Connect your GitHub repository
-   - Render will automatically detect `render.yaml` and create both services
+2. **Import to Vercel**
+   - Go to [Vercel Dashboard](https://vercel.com/dashboard)
+   - Click "New Project"
+   - Import your GitHub repository
+   - **Root Directory**: Set to `client`
+   - **Framework Preset**: Next.js
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `.next`
 
-3. **Set Environment Variables on Render Dashboard**
-
-   **Backend Service (`guestmanagementsystembackend`):**
-   - `MONGODB_URI`: Your MongoDB Atlas connection string
-   - `JWT_SECRET`: Generate with `openssl rand -base64 32`
-   - Other variables are pre-configured in `render.yaml`
+3. **Environment Variables** (Optional)
+   ```
+   NEXT_PUBLIC_API_URL=https://guestmanagementsystembackend.onrender.com
+   ```
 
 4. **Deploy**
-   - Render will automatically build and deploy both services
-   - Frontend: `https://guestmanagementsystem.onrender.com`
-   - Backend: `https://guestmanagementsystembackend.onrender.com`
+   - Click "Deploy"
+   - Vercel will build and deploy automatically
+
+### Deploy to Render (Backend)
+
+1. **Create Web Service**
+   - Go to [Render Dashboard](https://dashboard.render.com)
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+   - **Root Directory**: `server`
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm start`
+
+2. **Environment Variables**
+   ```bash
+   NODE_ENV=production
+   PORT=10000
+   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/guestmanagement
+   JWT_SECRET=your-generated-secret-key
+   CLIENT_URL=https://gmsapp-blue.vercel.app
+   ```
+
+3. **Generate JWT Secret**
+   ```bash
+   # On Linux/Mac:
+   openssl rand -base64 32
+   
+   # On Windows:
+   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+   ```
+
+### Configure CORS
+
+The backend automatically supports multiple origins including:
+- Your Vercel production URL
+- Vercel preview deployments
+- Local development (localhost:3000)
+
+Update `server/src/index.ts` if you need additional origins.
 
 ### Environment Variables Reference
 
-**Backend (.env.production):**
+**Backend (server/.env.production):**
 ```bash
 NODE_ENV=production
 PORT=10000
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/guest-management
-JWT_SECRET=your-super-secret-jwt-key
-CLIENT_URL=https://guestmanagementsystem.onrender.com
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/guestmanagement
+JWT_SECRET=your-super-secret-jwt-key-min-32-chars
+CLIENT_URL=https://gmsapp-blue.vercel.app
 ```
 
-**Frontend (.env.production):**
-```bash
-NODE_ENV=production
-NEXT_PUBLIC_API_URL=https://guestmanagementsystembackend.onrender.com
-NEXT_PUBLIC_CLIENT_URL=https://guestmanagementsystem.onrender.com
-```
+**Frontend (automatically configured):**
+- Development: Uses `http://localhost:5000`
+- Production: Uses environment detection or `NEXT_PUBLIC_API_URL`
 
-## 📚 API Endpoints
+## 📚 API Documentation
 
-### Guest Routes
-- `GET /api/guests` - Get all guests for an organization
-- `POST /api/guests` - Create a new guest
-- `POST /api/guests/:id/sign-out` - Sign out a guest
-- `GET /api/guests/:code` - Get guest by code
-
-### Organization Routes
+### Authentication
 - `POST /api/organizations/register` - Register new organization
-- `POST /api/organizations/login` - Admin login
+- `POST /api/organizations/login` - Admin login (returns JWT token)
+
+### Guest Management
+- `GET /api/guests` - Get all guests for organization (requires auth)
+- `POST /api/guests` - Create new guest sign-in
+- `PATCH /api/guests/:id/signout` - Sign out a guest
+- `PATCH /api/guests/:id/extend` - Extend guest visit time
+- `PATCH /api/guests/:id/assign-id` - Assign ID card to guest
+- `GET /api/guests/:code` - Get guest details by 6-digit code
+- `GET /api/guests/export` - Export guests to CSV (with date filters)
+
+### Organization & QR Codes
 - `GET /api/organizations/:id` - Get organization details
-- `GET /api/organizations/:id/qr` - Get organization QR code
+- `POST /api/qr/generate` - Generate QR code for organization
+- `GET /api/qr/:organizationId` - Get QR code data
 
-### Health Check
-- `GET /api/health` - Server health status
+### Dashboard
+- `GET /api/dashboard/stats` - Get real-time statistics (requires auth)
 
-## 🔧 Useful Scripts
+### Health & Monitoring
+- `GET /api/health` - Server health check and environment info
 
-### Backend
+**Authentication:** Most endpoints require JWT token in `Authorization: Bearer <token>` header.
+
+## 🔧 Development Scripts
+
+### Backend (server/)
 ```bash
-npm run dev          # Development with hot reload
-npm run build        # Build TypeScript
+npm run dev          # Start development server with hot reload
+npm run build        # Compile TypeScript to JavaScript
 npm start            # Start production server
-npm run debug:env    # Check environment variables
+npm run check:mongodb # Test MongoDB connection
+npm run debug:env    # Display environment configuration
 ```
 
-### Frontend
+### Frontend (client/)
 ```bash
-npm run dev          # Development mode
-npm run build        # Production build
+npm run dev          # Start Next.js development server
+npm run build        # Build for production (standalone mode)
 npm start            # Start production server
-npm run lint         # Run ESLint
-npm run type-check   # Check TypeScript types
+npm run lint         # Run ESLint code quality checks
 ```
+
+## 🎯 Admin Dashboard Features
+
+### Real-time Statistics
+- **Active Guests**: Currently signed-in guests count
+- **Today's Total**: Total guests who signed in today
+- **This Week**: Weekly guest count
+- **Average Duration**: Average visit time
+
+### Guest Table Actions
+- **View Details** 📋 - See complete guest information
+- **Assign ID Card** 🆔 - Track physical ID assignments
+- **Extend Time** ⏰ - Add more time to guest visits
+- **Sign Out** 🚪 - Manually sign out guests
+
+### Modals & Workflows
+- **Extend Time Modal**: Professional dialog with minute input validation
+- **Assign ID Card Modal**: Clean interface for ID card number entry
+- **Guest Details Modal**: Comprehensive guest information display
+- **Export Data Modal**: Date range selection for CSV exports
+- **QR Code Print**: Branded printable QR codes with instructions
+
+### Notification System
+When enabled, admins receive:
+1. **New Guest Alert**: Sound + desktop notification on sign-in
+2. **95% Time Warning**: Alert when guest time is almost up
+3. **Auto-refresh**: Dashboard updates every 10 seconds
+
+## 🔔 Notification Setup
+
+### Enable Browser Notifications
+
+1. **Allow Permissions**
+   - Browser will prompt for notification permission on first visit
+   - Click "Allow" to enable desktop alerts
+
+2. **Audio Alerts**
+   - Automatically enabled (no permission needed)
+   - Different sounds for new guests vs. time warnings
+
+3. **Supported Browsers**
+   - Chrome/Edge: Full support
+   - Firefox: Full support
+   - Safari: Desktop notifications only (audio may be limited)
+
+### Notification Types
+
+| Event | Sound | Desktop Alert | Action Required |
+|-------|-------|---------------|-----------------|
+| New Guest Sign-in | ✅ Beep | ✅ Auto-dismiss | Optional review |
+| 95% Time Used | ✅ Warning | ✅ Persistent | Extend or sign out |
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+We welcome contributions! Here's how to get started:
 
-## 📝 License
+1. **Fork the repository**
+   ```bash
+   git clone https://github.com/your-username/GuestManagementSystem.git
+   cd GuestManagementApp
+   ```
 
-This project is licensed under the MIT License.
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
 
-## 🐛 Troubleshooting
+3. **Make your changes**
+   - Follow existing code style
+   - Add comments for complex logic
+   - Update types if adding new features
+   - Test thoroughly in development
 
-### Build Failures
-- Ensure all environment variables are set correctly
-- Check Node.js version (18+ required)
-- Clear build caches: `rm -rf .next dist node_modules && npm install`
+4. **Commit your changes**
+   ```bash
+   git add .
+   git commit -m "Add amazing feature"
+   ```
 
-### Database Connection Issues
-- Verify MongoDB Atlas IP whitelist includes `0.0.0.0/0` for development
-- Check connection string format
-- Run `npm run check:mongodb` to test connection
+5. **Push and create Pull Request**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
 
-### Deployment Issues
-- Check Render logs in dashboard
-- Verify environment variables are set in Render dashboard
-- Ensure `render.yaml` service names match your Render URLs
+### Development Guidelines
+- Use TypeScript for type safety
+- Follow existing component structure
+- Add PropTypes/interfaces for new components
+- Test on multiple browsers
+- Update README if adding features
+- Keep commits focused and descriptive
 
-## 📧 Support
+## � License
 
-For issues and questions, please open an issue on GitHub.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+## 🌟 Acknowledgments
+
+- Built with [Next.js](https://nextjs.org/)
+- Backend powered by [Express.js](https://expressjs.com/)
+- Database by [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+- Deployed on [Vercel](https://vercel.com/) & [Render](https://render.com/)
+- UI styling with [Tailwind CSS](https://tailwindcss.com/)
+
+## 📧 Support & Contact
+
+- **GitHub Issues**: [Report bugs or request features](https://github.com/EmmaDeil/GuestManagementSystem/issues)
+- **Repository**: [https://github.com/EmmaDeil/GuestManagementSystem](https://github.com/EmmaDeil/GuestManagementSystem)
+- **Live Demo**: [https://gmsapp-blue.vercel.app](https://gmsapp-blue.vercel.app)
 
 ---
 
-**Live Demo:**
-- Frontend: https://guestmanagementsystem.onrender.com
-- Backend API: https://guestmanagementsystembackend.onrender.com/api/health
-   cd client
-   npm install
-   npm run dev
-   ```
+**Made with ❤️ for better guest management**
 
-3. **Setup Server**
-   ```bash
-   cd ../server
-   npm install
-   npm run dev
-   ```
-
-4. **Environment Variables**
-   - Copy `.env.example` files in both client and server directories
-   - Update with your MongoDB connection string and other configurations
-
-## Development Workflow
-
-1. Start MongoDB service
-2. Run the server: `cd server && npm run dev`
-3. Run the client: `cd client && npm run dev`
-4. Access the app at `http://localhost:3000`
-
-## Organization Setup
-
-1. Organizations register and get admin credentials
-2. Admins generate QR codes for their locations
-3. Guests scan QR codes to access sign-in forms
-4. Security team manages ID card assignments through the admin portal
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## Deployment
-
-### Render (Recommended)
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
-
-**Quick Deploy:**
-1. Push to GitHub
-2. Connect repository to Render
-3. Deploy using the included `render.yaml`
-4. Configure environment variables
-
-### Other Platforms
-The application can also be deployed on:
-- **Vercel** (Frontend) + **Railway** (Backend)
-- **Netlify** (Frontend) + **Heroku** (Backend)
-- **Docker** containers
-- **AWS**, **Google Cloud**, or **Azure**
-
-## QR Code Architecture
-
-Each organization gets unique QR codes that link to:
-```
-https://your-domain.com/guest/signin/[organizationId]
-```
-
-- **Integrated**: QR codes point to your main application (not separate)
-- **Secure**: Organization ID validates access
-- **Scalable**: Unlimited organizations supported
-
-## License
-
-MIT License - see LICENSE file for details
+**Status**: ✅ Production Ready | 🚀 Actively Maintained | 📱 Mobile-First
