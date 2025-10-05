@@ -168,6 +168,155 @@ export default function AdminDashboard() {
       }
    };
 
+   const printQRCode = () => {
+      if (!qrCodeUrl) return;
+
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+         alert('Please allow pop-ups to print the QR code');
+         return;
+      }
+
+      const orgName = organization?.name || 'Guest Management System';
+      const printDate = new Date().toLocaleDateString('en-US', {
+         year: 'numeric',
+         month: 'long',
+         day: 'numeric'
+      });
+
+      printWindow.document.write(`
+         <!DOCTYPE html>
+         <html>
+            <head>
+               <title>Print QR Code - ${orgName}</title>
+               <style>
+                  @media print {
+                     @page {
+                        margin: 1cm;
+                     }
+                     body {
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                     }
+                  }
+                  body {
+                     font-family: Arial, sans-serif;
+                     display: flex;
+                     justify-content: center;
+                     align-items: center;
+                     min-height: 100vh;
+                     margin: 0;
+                     padding: 20px;
+                     background: white;
+                  }
+                  .container {
+                     text-align: center;
+                     max-width: 600px;
+                     border: 2px solid #e5e7eb;
+                     border-radius: 12px;
+                     padding: 40px;
+                     background: white;
+                  }
+                  .header {
+                     margin-bottom: 30px;
+                  }
+                  h1 {
+                     color: #1f2937;
+                     font-size: 32px;
+                     margin: 0 0 10px 0;
+                     font-weight: bold;
+                  }
+                  .subtitle {
+                     color: #6b7280;
+                     font-size: 18px;
+                     margin: 0 0 20px 0;
+                  }
+                  .qr-wrapper {
+                     background: white;
+                     padding: 20px;
+                     border-radius: 8px;
+                     display: inline-block;
+                     margin: 20px 0;
+                     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                  }
+                  img {
+                     display: block;
+                     width: 300px;
+                     height: 300px;
+                  }
+                  .instructions {
+                     margin-top: 30px;
+                     padding: 20px;
+                     background: #f9fafb;
+                     border-radius: 8px;
+                     text-align: left;
+                  }
+                  .instructions h2 {
+                     color: #1f2937;
+                     font-size: 20px;
+                     margin: 0 0 15px 0;
+                  }
+                  .instructions ol {
+                     color: #4b5563;
+                     font-size: 16px;
+                     line-height: 1.8;
+                     margin: 0;
+                     padding-left: 25px;
+                  }
+                  .footer {
+                     margin-top: 30px;
+                     padding-top: 20px;
+                     border-top: 1px solid #e5e7eb;
+                     color: #9ca3af;
+                     font-size: 14px;
+                  }
+                  @media print {
+                     .no-print {
+                        display: none;
+                     }
+                  }
+               </style>
+            </head>
+            <body>
+               <div class="container">
+                  <div class="header">
+                     <h1>${orgName}</h1>
+                     <p class="subtitle">Guest Sign-In QR Code</p>
+                  </div>
+                  
+                  <div class="qr-wrapper">
+                     <img src="${qrCodeUrl}" alt="QR Code for Guest Sign-In" />
+                  </div>
+                  
+                  <div class="instructions">
+                     <h2>📱 How to Use:</h2>
+                     <ol>
+                        <li>Open your smartphone camera</li>
+                        <li>Point it at the QR code above</li>
+                        <li>Tap the notification to open the sign-in form</li>
+                        <li>Fill out your details and submit</li>
+                        <li>Show your guest code to reception</li>
+                     </ol>
+                  </div>
+                  
+                  <div class="footer">
+                     <p>Generated on ${printDate}</p>
+                     <p>Guest Management System</p>
+                  </div>
+               </div>
+               <script>
+                  window.onload = function() {
+                     setTimeout(function() {
+                        window.print();
+                     }, 250);
+                  }
+               </script>
+            </body>
+         </html>
+      `);
+      printWindow.document.close();
+   };
+
    const handleLogout = () => {
       localStorage.removeItem('admin_token');
       localStorage.removeItem('organization');
@@ -464,12 +613,23 @@ export default function AdminDashboard() {
             <div className="bg-white rounded-lg shadow mb-8 p-6">
                <h2 className="text-lg font-semibold text-gray-900 mb-4">QR Code for Guest Sign-In</h2>
                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                  <button
-                     onClick={generateQRCode}
-                     className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                     Generate QR Code
-                  </button>
+                  <div className="flex flex-col gap-2">
+                     <button
+                        onClick={generateQRCode}
+                        className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                     >
+                        Generate QR Code
+                     </button>
+                     {qrCodeUrl && (
+                        <button
+                           onClick={printQRCode}
+                           className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                           <span>🖨️</span>
+                           <span>Print QR Code</span>
+                        </button>
+                     )}
+                  </div>
                   {qrCodeUrl && (
                      <div className="border-2 border-gray-200 rounded-lg p-4">
                         <Image src={qrCodeUrl} alt="QR Code" width={128} height={128} className="w-36 h-32" />
