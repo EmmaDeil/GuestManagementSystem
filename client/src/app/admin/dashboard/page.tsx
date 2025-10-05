@@ -28,6 +28,10 @@ export default function AdminDashboard() {
    const [assignIdGuestId, setAssignIdGuestId] = useState<string | null>(null);
    const [idCardNumber, setIdCardNumber] = useState('');
    const autoSigningOutRef = useRef<Set<string>>(new Set());
+   const previousGuestCountRef = useRef<number>(0);
+   const notified95PercentRef = useRef<Set<string>>(new Set());
+   const newSignInAudioRef = useRef<HTMLAudioElement | null>(null);
+   const timeWarningAudioRef = useRef<HTMLAudioElement | null>(null);
 
    const fetchDashboardData = useCallback(async (token: string) => {
       try {
@@ -78,6 +82,32 @@ export default function AdminDashboard() {
          router.push('/admin');
       }
    }, [router, fetchDashboardData]);
+
+   // Initialize audio and request notification permissions
+   useEffect(() => {
+      // Create audio elements using data URLs for common notification sounds
+      // Using base64 encoded short beep sounds
+      newSignInAudioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBCx+zPDTjT0HF2m98NuXUA0PUrXz66NeGwU8lt7z0IU2Bx1ywfDglkYMEmO58OynWBUIQ6Tn8L1nHwU1ivDy0og5BxdpvPDbllANDlK08+uiXxsEPJbe89CGOCV7xfDekEAKFF606+qkVhYKRp/g8r1sIQQsfs3w1Iw8CBdqve/alVAND1Cz8+qiYBsEPJbe89CGOCV7xfDekEAKFF606+qkVhYKRp/g8r1sIQQsfs3w1Iw8CBdqve/alVAND1Cz8+qiYBsEPJbe89CGOCV7xfDekEAKFF606+qkVhYKRp/g8r1sIQQsfs3w1Iw8CBdqve/alVAND1Cz8+qiYBsEPJbe89CGOCV7xfDekEAKFF606+qkVhYKRp/g8r1sIQQsfs3w1Iw8CBdqve/alVAND1Cz8+qiYBsEPJbe89CGOCV7xfDekEAKFF606+qkVhYKRp/g8r1sIQQsfs3w1Iw8CBdqve/alVAND1Cz8+qiYBsEPJbe89CGOCV7xfDekEAKFF606+qkVhYKRp/g8r1sIQQsfs3w1Iw8CBdqve/alVAND1Cz8+qiYBsEPJbe89CGOCV7xfDekEAKFF606+qkVhYKRp/g8r1sIQQsfs3w1Iw8CBdqve/alVAND1Cz8+qiYBsEPJbe89CGOCV7xfDekEAKFF606+qkVhYKRp/g8r1sIQQsfs3w1Iw8CBdqve/alVAND1Cz8+qiYBsEPJbe89CGOCV7xfDekEAKFF606+qkVhYKRp/g8r1sIQQsfs3w1Iw8CBdqve/alVAND1Cz8+qiYBsEPJbe89CGOCV7xfDekEAKFF606+qkVhYKRp/g8r1sIQQsfs3w1Iw8CBdqve/alVAND1Cz8+qiYBsEPJbe89CGOCBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBCx+zPDTjT0HF2m98NuXUA0PUrXz66NeGwU8lt7z0IU2Bx1ywfDglkYMEmO58OynWBUIQ6Tn8L1nHwU1ivDy0og5BxdpvPDbllANDlK08+uiXxsEPJbe89CGOCBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBCx+zPDTjT0HF2m98NuXUA0PUrXz66NeGwU8lt7z0IU2Bx1ywfDglkYMEmO58OynWBUIQ6Tn8L1nHwU1ivDy0og5BxdpvPDbllANDlK08+uiXxsEPJbe89CG');
+
+      timeWarningAudioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBCx+zPDTjT0HF2m98NuXUA0PUrXz66NeGwU8lt7z0IU2Bx1ywfDglkYMEmO58OynWBUIQ6Tn8L1nHwU1ivDy0og5BxdpvPDbllANDlK08+uiXxsEPJbe89CGOCBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBCx+zPDTjT0HF2m98NuXUA0PUrXz66NeGwU8lt7z0IU2Bx1ywfDglkYMEmO58OynWBUIQ6Tn8L1nHwU1ivDy0og5BxdpvPDbllANDlK08+uiXxsEPJbe89CG');
+
+      // Request notification permission
+      if ('Notification' in window && Notification.permission === 'default') {
+         Notification.requestPermission();
+      }
+
+      return () => {
+         // Cleanup audio elements
+         if (newSignInAudioRef.current) {
+            newSignInAudioRef.current.pause();
+            newSignInAudioRef.current = null;
+         }
+         if (timeWarningAudioRef.current) {
+            timeWarningAudioRef.current.pause();
+            timeWarningAudioRef.current = null;
+         }
+      };
+   }, []);
 
    // Real-time timer updates with auto-expiry
    useEffect(() => {
@@ -131,15 +161,42 @@ export default function AdminDashboard() {
          const now = new Date();
          setCurrentTime(now);
 
-         // Auto-expire guests whose time has run out
+         // Check guests for both expiry and 95% warning
          guests.forEach(guest => {
-            if (guest.status === 'signed-in') {
+            if (guest.status === 'signed-in' && guest._id) {
                const signInTime = new Date(guest.signInTime);
                const expectedEndTime = new Date(signInTime.getTime() + guest.expectedDuration * 60 * 1000);
+               const timeElapsed = now.getTime() - signInTime.getTime();
+               const totalDuration = guest.expectedDuration * 60 * 1000;
+               const percentUsed = (timeElapsed / totalDuration) * 100;
 
+               // Check if guest has reached 95% of their time
+               if (percentUsed >= 95 && percentUsed < 100 && !notified95PercentRef.current.has(guest._id)) {
+                  // Mark as notified to prevent repeated notifications
+                  notified95PercentRef.current.add(guest._id);
+
+                  // Play warning sound
+                  if (timeWarningAudioRef.current) {
+                     timeWarningAudioRef.current.play().catch(err => console.log('Audio play prevented:', err));
+                  }
+
+                  // Show browser notification
+                  if ('Notification' in window && Notification.permission === 'granted') {
+                     new Notification('⏰ Guest Time Nearly Up!', {
+                        body: `${guest.guestName}'s time is 95% used. Consider extending or signing out.`,
+                        icon: '/favicon.ico',
+                        tag: `time-warning-${guest._id}`,
+                        requireInteraction: true
+                     });
+                  }
+               }
+
+               // Auto-expire guests whose time has run out
                if (now > expectedEndTime) {
                   // Auto sign out expired guest (only if not already being processed)
-                  autoSignOutExpiredGuest(guest._id!);
+                  autoSignOutExpiredGuest(guest._id);
+                  // Remove from notified set when signing out
+                  notified95PercentRef.current.delete(guest._id);
                }
             }
          });
@@ -147,6 +204,34 @@ export default function AdminDashboard() {
 
       return () => clearInterval(interval);
    }, [guests, fetchDashboardData]);
+
+   // Detect new guest sign-ins and play notification
+   useEffect(() => {
+      const signedInGuests = guests.filter(g => g.status === 'signed-in');
+      const currentCount = signedInGuests.length;
+
+      // Check if there's a new guest (count increased)
+      if (previousGuestCountRef.current > 0 && currentCount > previousGuestCountRef.current) {
+         // Play notification sound
+         if (newSignInAudioRef.current) {
+            newSignInAudioRef.current.play().catch(err => console.log('Audio play prevented:', err));
+         }
+
+         // Show browser notification
+         if ('Notification' in window && Notification.permission === 'granted') {
+            const newGuest = signedInGuests[signedInGuests.length - 1];
+            new Notification('🔔 New Guest Arrival', {
+               body: `${newGuest.guestName} has signed in`,
+               icon: '/favicon.ico',
+               tag: 'new-guest',
+               requireInteraction: false
+            });
+         }
+      }
+
+      // Update the previous count
+      previousGuestCountRef.current = currentCount;
+   }, [guests]);
 
    // Auto-refresh guest list every 10 seconds to show new sign-ins
    useEffect(() => {
