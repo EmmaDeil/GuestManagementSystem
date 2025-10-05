@@ -27,6 +27,12 @@ export default function AdminDashboard() {
    const [showAssignIdModal, setShowAssignIdModal] = useState(false);
    const [assignIdGuestId, setAssignIdGuestId] = useState<string | null>(null);
    const [idCardNumber, setIdCardNumber] = useState('');
+   const [toastNotifications, setToastNotifications] = useState<Array<{
+      id: string;
+      type: 'new-guest' | 'time-warning';
+      message: string;
+      guestName: string;
+   }>>([]);
    const autoSigningOutRef = useRef<Set<string>>(new Set());
    const previousGuestCountRef = useRef<number>(0);
    const notified95PercentRef = useRef<Set<string>>(new Set());
@@ -161,7 +167,7 @@ export default function AdminDashboard() {
          const now = new Date();
          setCurrentTime(now);
 
-         // Check guests for both expiry and 95% warning
+         // Check guests for 95% warning and 100% expiry
          guests.forEach(guest => {
             if (guest.status === 'signed-in' && guest._id) {
                const signInTime = new Date(guest.signInTime);
@@ -170,7 +176,7 @@ export default function AdminDashboard() {
                const totalDuration = guest.expectedDuration * 60 * 1000;
                const percentUsed = (timeElapsed / totalDuration) * 100;
 
-               // Check if guest has reached 95% of their time
+               // Check if guest has reached 95% of their time (but not yet 100%)
                if (percentUsed >= 95 && percentUsed < 100 && !notified95PercentRef.current.has(guest._id)) {
                   // Mark as notified to prevent repeated notifications
                   notified95PercentRef.current.add(guest._id);
@@ -179,6 +185,9 @@ export default function AdminDashboard() {
                   if (timeWarningAudioRef.current) {
                      timeWarningAudioRef.current.play().catch(err => console.log('Audio play prevented:', err));
                   }
+
+                  // Show in-app toast notification
+                  showToastNotification('time-warning', guest.guestName);
 
                   // Show browser notification
                   if ('Notification' in window && Notification.permission === 'granted') {
@@ -189,11 +198,15 @@ export default function AdminDashboard() {
                         requireInteraction: true
                      });
                   }
+
+                  console.log(`95% Warning: ${guest.guestName} has used 95% of their time`);
                }
 
-               // Auto-expire guests whose time has run out
-               if (now > expectedEndTime) {
+               // Auto-expire guests whose time has COMPLETELY run out (100%)
+               // Only trigger if they've passed the expected end time
+               if (percentUsed >= 100 && now > expectedEndTime) {
                   // Auto sign out expired guest (only if not already being processed)
+                  console.log(`Auto sign-out: ${guest.guestName} time expired at 100%`);
                   autoSignOutExpiredGuest(guest._id);
                   // Remove from notified set when signing out
                   notified95PercentRef.current.delete(guest._id);
@@ -217,9 +230,13 @@ export default function AdminDashboard() {
             newSignInAudioRef.current.play().catch(err => console.log('Audio play prevented:', err));
          }
 
+         const newGuest = signedInGuests[signedInGuests.length - 1];
+
+         // Show in-app toast notification
+         showToastNotification('new-guest', newGuest.guestName);
+
          // Show browser notification
          if ('Notification' in window && Notification.permission === 'granted') {
-            const newGuest = signedInGuests[signedInGuests.length - 1];
             new Notification('🔔 New Guest Arrival', {
                body: `${newGuest.guestName} has signed in`,
                icon: '/favicon.ico',
@@ -427,6 +444,24 @@ export default function AdminDashboard() {
       router.push('/admin');
    };
 
+   const showToastNotification = (type: 'new-guest' | 'time-warning', guestName: string) => {
+      const id = `${type}-${Date.now()}`;
+      const message = type === 'new-guest'
+         ? `${guestName} has signed in`
+         : `${guestName}'s time is 95% used!`;
+
+      setToastNotifications(prev => [...prev, { id, type, message, guestName }]);
+
+      // Auto-remove toast after 5 seconds
+      setTimeout(() => {
+         setToastNotifications(prev => prev.filter(notif => notif.id !== id));
+      }, type === 'new-guest' ? 5000 : 10000); // Time warnings stay longer
+   };
+
+   const removeToast = (id: string) => {
+      setToastNotifications(prev => prev.filter(notif => notif.id !== id));
+   };
+
    const assignIdCard = async (guestId: string, idCardNumber: string) => {
       const token = localStorage.getItem('admin_token');
       if (!token) return;
@@ -482,6 +517,8 @@ export default function AdminDashboard() {
          if (result.success) {
             const token = localStorage.getItem('admin_token');
             if (token) {
+               // Clear 95% notification tracking for this guest
+               notified95PercentRef.current.delete(guestId);
                fetchDashboardData(token);
             }
          } else {
@@ -512,6 +549,8 @@ export default function AdminDashboard() {
          if (result.success) {
             const token = localStorage.getItem('admin_token');
             if (token) {
+               // Clear 95% notification tracking so they can be notified again if needed
+               notified95PercentRef.current.delete(guestId);
                fetchDashboardData(token);
             }
          } else {
@@ -552,6 +591,14 @@ export default function AdminDashboard() {
       const signInTime = new Date(guest.signInTime);
       const expectedEndTime = new Date(signInTime.getTime() + guest.expectedDuration * 60 * 1000);
       return currentTime > expectedEndTime && guest.status === 'signed-in';
+   };
+
+   const isGuestAt95Percent = (guest: Guest): boolean => {
+      const signInTime = new Date(guest.signInTime);
+      const timeElapsed = currentTime.getTime() - signInTime.getTime();
+      const totalDuration = guest.expectedDuration * 60 * 1000;
+      const percentUsed = (timeElapsed / totalDuration) * 100;
+      return percentUsed >= 95 && percentUsed < 100 && guest.status === 'signed-in';
    };
 
    const getTimeRemaining = (guest: Guest): string => {
@@ -853,11 +900,21 @@ export default function AdminDashboard() {
                                  </td>
                                  <td className="px-2 sm:px-4 py-3 text-xs">
                                     {guest.status === 'signed-in' && (
-                                       <div className={`${isGuestExpired(guest) ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>
+                                       <div className={`${isGuestExpired(guest)
+                                          ? 'text-red-600 font-semibold'
+                                          : isGuestAt95Percent(guest)
+                                             ? 'text-yellow-600 font-semibold'
+                                             : 'text-gray-600'
+                                          }`}>
                                           <div className="whitespace-nowrap">{getTimeRemaining(guest)}</div>
                                           {isGuestExpired(guest) && (
                                              <div className="text-xs text-red-500 mt-1">
-                                                ⚠️ Expired
+                                                🚨 Expired
+                                             </div>
+                                          )}
+                                          {!isGuestExpired(guest) && isGuestAt95Percent(guest) && (
+                                             <div className="text-xs text-yellow-600 mt-1 animate-pulse">
+                                                ⏰ 95% Used
                                              </div>
                                           )}
                                        </div>
@@ -905,12 +962,20 @@ export default function AdminDashboard() {
                                                 }
                                              }}
                                              className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${isGuestExpired(guest)
-                                                ? 'bg-orange-500 hover:bg-orange-600 text-white animate-pulse'
-                                                : 'bg-gray-500 hover:bg-gray-600 text-white'
+                                                ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                                                : isGuestAt95Percent(guest)
+                                                   ? 'bg-yellow-500 hover:bg-yellow-600 text-white animate-pulse'
+                                                   : 'bg-gray-500 hover:bg-gray-600 text-white'
                                                 }`}
-                                             title={isGuestExpired(guest) ? 'Guest is overdue - Extend visit time' : 'Extend Visit Time'}
+                                             title={
+                                                isGuestExpired(guest)
+                                                   ? 'Guest is overdue - Extend visit time NOW!'
+                                                   : isGuestAt95Percent(guest)
+                                                      ? 'Guest time is 95% used - Extend now or they will be auto-signed out'
+                                                      : 'Extend Visit Time'
+                                             }
                                           >
-                                             {isGuestExpired(guest) ? '⏰' : 'Ext'}
+                                             {isGuestExpired(guest) ? '🚨' : isGuestAt95Percent(guest) ? '⏰' : 'Ext'}
                                           </button>
                                        )}
 
@@ -1250,6 +1315,40 @@ export default function AdminDashboard() {
                </div>
             </div>
          )}
+
+         {/* Toast Notifications */}
+         <div className="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
+            {toastNotifications.map((notification) => (
+               <div
+                  key={notification.id}
+                  className={`rounded-lg shadow-2xl p-4 flex items-start space-x-3 animate-slide-in-right ${notification.type === 'new-guest'
+                        ? 'bg-blue-600 border-2 border-blue-400'
+                        : 'bg-yellow-500 border-2 border-yellow-400 animate-pulse'
+                     }`}
+               >
+                  <div className="flex-shrink-0 text-2xl">
+                     {notification.type === 'new-guest' ? '🔔' : '⏰'}
+                  </div>
+                  <div className="flex-1">
+                     <h4 className="text-white font-bold text-sm mb-1">
+                        {notification.type === 'new-guest' ? 'New Guest Arrival' : 'Time Warning!'}
+                     </h4>
+                     <p className="text-white text-sm">{notification.message}</p>
+                     {notification.type === 'time-warning' && (
+                        <p className="text-white text-xs mt-1 font-semibold">
+                           ⚠️ Extend time or sign out now!
+                        </p>
+                     )}
+                  </div>
+                  <button
+                     onClick={() => removeToast(notification.id)}
+                     className="flex-shrink-0 text-white hover:text-gray-200 font-bold text-lg"
+                  >
+                     ×
+                  </button>
+               </div>
+            ))}
+         </div>
       </div>
    );
 }
