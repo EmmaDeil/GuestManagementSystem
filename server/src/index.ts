@@ -51,7 +51,7 @@ console.log('🔧 Setting up middleware...');
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:3000',
   'http://localhost:3000',
-  'https://gmsapp-blue.vercel.app',
+  'https://gms-sigma-two.vercel.app',
 ].filter(Boolean);
 
 console.log(`🌐 CORS Allowed Origins:`, allowedOrigins);

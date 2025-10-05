@@ -29,7 +29,7 @@ const getClientUrl = () => {
   }
   
   // Production fallback
-  return 'https://guestmanagementsystem.onrender.com';
+  return 'https://gms-sigma-two.vercel.app';
 };
 
 const config = {
