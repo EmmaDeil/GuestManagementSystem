@@ -21,6 +21,12 @@ export default function AdminDashboard() {
    const [exportStartDate, setExportStartDate] = useState('');
    const [exportEndDate, setExportEndDate] = useState('');
    const [isExporting, setIsExporting] = useState(false);
+   const [showExtendModal, setShowExtendModal] = useState(false);
+   const [extendGuestId, setExtendGuestId] = useState<string | null>(null);
+   const [extendMinutes, setExtendMinutes] = useState('30');
+   const [showAssignIdModal, setShowAssignIdModal] = useState(false);
+   const [assignIdGuestId, setAssignIdGuestId] = useState<string | null>(null);
+   const [idCardNumber, setIdCardNumber] = useState('');
    const autoSigningOutRef = useRef<Set<string>>(new Set());
 
    const fetchDashboardData = useCallback(async (token: string) => {
@@ -141,6 +147,19 @@ export default function AdminDashboard() {
 
       return () => clearInterval(interval);
    }, [guests, fetchDashboardData]);
+
+   // Auto-refresh guest list every 10 seconds to show new sign-ins
+   useEffect(() => {
+      const token = localStorage.getItem('admin_token');
+      if (!token) return;
+
+      const refreshInterval = setInterval(() => {
+         // Silently refresh dashboard data in the background
+         fetchDashboardData(token);
+      }, 10000); // Refresh every 10 seconds
+
+      return () => clearInterval(refreshInterval);
+   }, [fetchDashboardData]);
 
    const generateQRCode = async () => {
       const token = localStorage.getItem('admin_token');
@@ -419,7 +438,32 @@ export default function AdminDashboard() {
       }
    };
 
-   const isGuestExpired = (guest: Guest): boolean => {
+   const handleExtendVisit = () => {
+      if (!extendGuestId) return;
+
+      const minutes = parseInt(extendMinutes);
+      if (isNaN(minutes) || minutes <= 0) {
+         setError('Please enter a valid number of minutes');
+         return;
+      }
+
+      extendVisit(extendGuestId, minutes);
+      setShowExtendModal(false);
+      setExtendGuestId(null);
+      setExtendMinutes('30'); // Reset to default
+   };
+
+   const handleAssignIdCard = () => {
+      if (!assignIdGuestId || !idCardNumber.trim()) {
+         setError('Please enter an ID card number');
+         return;
+      }
+
+      assignIdCard(assignIdGuestId, idCardNumber.trim());
+      setShowAssignIdModal(false);
+      setAssignIdGuestId(null);
+      setIdCardNumber(''); // Reset
+   }; const isGuestExpired = (guest: Guest): boolean => {
       const signInTime = new Date(guest.signInTime);
       const expectedEndTime = new Date(signInTime.getTime() + guest.expectedDuration * 60 * 1000);
       return currentTime > expectedEndTime && guest.status === 'signed-in';
@@ -743,9 +787,9 @@ export default function AdminDashboard() {
                                        {!guest.idCardAssigned && guest.status === 'signed-in' && (
                                           <button
                                              onClick={() => {
-                                                const idCardNumber = prompt('Enter ID Card Number:');
-                                                if (idCardNumber && guest._id) {
-                                                   assignIdCard(guest._id, idCardNumber);
+                                                if (guest._id) {
+                                                   setAssignIdGuestId(guest._id);
+                                                   setShowAssignIdModal(true);
                                                 }
                                              }}
                                              className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium whitespace-nowrap"
@@ -770,12 +814,9 @@ export default function AdminDashboard() {
                                        {guest.status === 'signed-in' && (
                                           <button
                                              onClick={() => {
-                                                const additional = prompt('Extend visit by how many minutes?', '30');
-                                                if (additional && guest._id) {
-                                                   const minutes = parseInt(additional);
-                                                   if (!isNaN(minutes) && minutes > 0) {
-                                                      extendVisit(guest._id, minutes);
-                                                   }
+                                                if (guest._id) {
+                                                   setExtendGuestId(guest._id);
+                                                   setShowExtendModal(true);
                                                 }
                                              }}
                                              className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${isGuestExpired(guest)
@@ -925,6 +966,132 @@ export default function AdminDashboard() {
                         className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm"
                      >
                         Close
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Extend Time Modal */}
+         {showExtendModal && (
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50">
+               <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                  <div className="flex justify-between items-center mb-4">
+                     <h3 className="text-lg font-semibold text-gray-900">⏰ Extend Visit Time</h3>
+                     <button
+                        onClick={() => {
+                           setShowExtendModal(false);
+                           setExtendGuestId(null);
+                           setExtendMinutes('30');
+                        }}
+                        className="text-gray-400 hover:text-gray-600"
+                     >
+                        ✕
+                     </button>
+                  </div>
+
+                  <div className="space-y-4">
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                           Extend visit by how many minutes?
+                        </label>
+                        <input
+                           type="number"
+                           value={extendMinutes}
+                           onChange={(e) => setExtendMinutes(e.target.value)}
+                           min="1"
+                           max="480"
+                           required
+                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Enter minutes (e.g., 30)"
+                           autoFocus
+                        />
+                     </div>
+
+                     <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded">
+                        💡 <strong>Tip:</strong> Common values are 15, 30, 60, or 120 minutes.
+                     </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end space-x-3">
+                     <button
+                        onClick={() => {
+                           setShowExtendModal(false);
+                           setExtendGuestId(null);
+                           setExtendMinutes('30');
+                        }}
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm"
+                     >
+                        Cancel
+                     </button>
+                     <button
+                        onClick={handleExtendVisit}
+                        disabled={!extendMinutes || parseInt(extendMinutes) <= 0}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm flex items-center"
+                     >
+                        ⏰ Extend Time
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Assign ID Card Modal */}
+         {showAssignIdModal && (
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50">
+               <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                  <div className="flex justify-between items-center mb-4">
+                     <h3 className="text-lg font-semibold text-gray-900">🆔 Assign ID Card</h3>
+                     <button
+                        onClick={() => {
+                           setShowAssignIdModal(false);
+                           setAssignIdGuestId(null);
+                           setIdCardNumber('');
+                        }}
+                        className="text-gray-400 hover:text-gray-600"
+                     >
+                        ✕
+                     </button>
+                  </div>
+
+                  <div className="space-y-4">
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                           ID Card Number *
+                        </label>
+                        <input
+                           type="text"
+                           value={idCardNumber}
+                           onChange={(e) => setIdCardNumber(e.target.value)}
+                           required
+                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Enter ID card number (e.g., ID-001)"
+                           autoFocus
+                        />
+                     </div>
+
+                     <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded">
+                        💡 <strong>Tip:</strong> Use a consistent format like ID-001, CARD-123, or any tracking number.
+                     </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end space-x-3">
+                     <button
+                        onClick={() => {
+                           setShowAssignIdModal(false);
+                           setAssignIdGuestId(null);
+                           setIdCardNumber('');
+                        }}
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm"
+                     >
+                        Cancel
+                     </button>
+                     <button
+                        onClick={handleAssignIdCard}
+                        disabled={!idCardNumber.trim()}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm flex items-center"
+                     >
+                        🆔 Assign Card
                      </button>
                   </div>
                </div>
