@@ -12,7 +12,7 @@ export default function HomePage() {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">Guest Management System</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Visitor Management System</h1>
         </div>
       </header>
 
@@ -20,7 +20,7 @@ export default function HomePage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Welcome to Guest Management
+            Welcome to Visitor Management System
           </h2>
           <p className="text-xl text-gray-600 mb-8">
             Streamline your organization&apos;s guest check-in process with QR codes and digital tracking
@@ -40,7 +40,7 @@ export default function HomePage() {
                 <strong>How it works:</strong><br />
                 1. Scan QR code with your phone<br />
                 2. Fill out the sign-in form<br />
-                3. Receive your unique guest code<br />
+                3. Receive your unique visitor code<br />
                 4. Collect ID from security
               </p>
             </div>

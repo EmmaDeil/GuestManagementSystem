@@ -21,6 +21,7 @@ export default function AdminRegister() {
    });
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState('');
+   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
    const [successMessage, setSuccessMessage] = useState('');
 
    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -56,6 +57,7 @@ export default function AdminRegister() {
       e.preventDefault();
       setLoading(true);
       setError('');
+      setFieldErrors({});
       setSuccessMessage('');
 
       // Validation
@@ -99,7 +101,16 @@ export default function AdminRegister() {
                router.push('/admin');
             }, 200);
          } else {
-            setError(data.message || 'Registration failed');
+            // Handle validation errors with specific field messages
+            if (data.fields && typeof data.fields === 'object') {
+               // Set field-specific errors
+               setFieldErrors(data.fields);
+               setError('Please fix the errors below');
+            } else if (data.error && typeof data.error === 'string') {
+               setError(data.error);
+            } else {
+               setError(data.message || 'Registration failed');
+            }
          }
       } catch (err) {
          setError('Network error. Please try again.');
@@ -150,9 +161,12 @@ export default function AdminRegister() {
                            required
                            value={formData.name}
                            onChange={handleChange}
-                           className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                           className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${fieldErrors.name ? 'border-red-500' : 'border-gray-300'} placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                            placeholder="Your organization name"
                         />
+                        {fieldErrors.name && (
+                           <p className="mt-1 text-sm text-red-600">{fieldErrors.name}</p>
+                        )}
                      </div>
 
                      <div>
@@ -167,9 +181,12 @@ export default function AdminRegister() {
                            required
                            value={formData.email}
                            onChange={handleChange}
-                           className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                           className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${fieldErrors.email ? 'border-red-500' : 'border-gray-300'} placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                            placeholder="organization@example.com"
                         />
+                        {fieldErrors.email && (
+                           <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
+                        )}
                      </div>
                   </div>
 
@@ -186,9 +203,12 @@ export default function AdminRegister() {
                            required
                            value={formData.password}
                            onChange={handleChange}
-                           className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                           className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${fieldErrors.password ? 'border-red-500' : 'border-gray-300'} placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                            placeholder="Password (min 6 characters)"
                         />
+                        {fieldErrors.password && (
+                           <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+                        )}
                      </div>
 
                      <div>
@@ -226,9 +246,12 @@ export default function AdminRegister() {
                            required
                            value={formData.contactPerson}
                            onChange={handleChange}
-                           className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                           className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${fieldErrors.contactPerson ? 'border-red-500' : 'border-gray-300'} placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                            placeholder="Primary contact name"
                         />
+                        {fieldErrors.contactPerson && (
+                           <p className="mt-1 text-sm text-red-600">{fieldErrors.contactPerson}</p>
+                        )}
                      </div>
 
                      <div>
@@ -242,9 +265,12 @@ export default function AdminRegister() {
                            required
                            value={formData.phone}
                            onChange={handleChange}
-                           className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                           placeholder="+1234567890"
+                           className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${fieldErrors.phone ? 'border-red-500' : 'border-gray-300'} placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
+                           placeholder="+1234567890 or 08123456789"
                         />
+                        {fieldErrors.phone && (
+                           <p className="mt-1 text-sm text-red-600">{fieldErrors.phone}</p>
+                        )}
                      </div>
                   </div>
 
@@ -259,9 +285,12 @@ export default function AdminRegister() {
                         required
                         value={formData.address}
                         onChange={handleChange}
-                        className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                        className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${fieldErrors.address ? 'border-red-500' : 'border-gray-300'} placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                         placeholder="Complete organization address"
                      />
+                     {fieldErrors.address && (
+                        <p className="mt-1 text-sm text-red-600">{fieldErrors.address}</p>
+                     )}
                   </div>
                </div>
 

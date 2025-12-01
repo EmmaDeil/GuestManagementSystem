@@ -30,7 +30,7 @@ const OrganizationSchema: Schema = new Schema({
   phone: {
     type: String,
     required: [true, 'Phone number is required'],
-    match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
+    match: [/^[\+]?[0-9][\d]{7,15}$/, 'Please enter a valid phone number (8-16 digits, optional + prefix)']
   },
   address: {
     type: String,

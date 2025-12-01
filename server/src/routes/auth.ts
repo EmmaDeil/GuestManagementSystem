@@ -153,6 +153,31 @@ router.post('/register', async (req, res) => {
     });
   } catch (error: unknown) {
     console.error('Registration error:', error);
+    
+    // Handle Mongoose validation errors
+    if (error instanceof Error && error.name === 'ValidationError') {
+      const validationError = error as any;
+      const errors = validationError.errors;
+      
+      // Extract field-specific error messages
+      const fieldErrors: Record<string, string> = {};
+      for (const field in errors) {
+        fieldErrors[field] = errors[field].message;
+      }
+      
+      // Create a user-friendly error message
+      const errorMessages = Object.entries(fieldErrors)
+        .map(([field, msg]) => `${field}: ${msg}`)
+        .join(', ');
+      
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        error: errorMessages,
+        fields: fieldErrors
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Internal server error',

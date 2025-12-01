@@ -13,12 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Guest Management System",
+  title: "Visitor's Management System",
   description: "Modern guest registration and management system with QR code integration",
   icons: {
     icon: "/logo.png",
   },
-  keywords: ["guest management", "visitor registration", "QR code", "organization"],
+  keywords: ["visitor management", "visitor registration", "QR code", "organization"],
 };
 
 export const viewport = {
