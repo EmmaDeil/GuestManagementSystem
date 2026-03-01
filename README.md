@@ -97,8 +97,10 @@ GuestManagementApp/
 │   │   │   └── auth.ts        # JWT verification
 │   │   ├── scripts/            # Utility scripts
 │   │   └── index.ts           # Server entry point
-│   ├── .env.production         # Production config
+│   ├── .env.production         # Production config (create from example)
+│   ├── .env.production.example # Production environment template
 │   ├── .env.development        # Development config
+│   ├── ecosystem.config.js    # PM2 process manager config
 │   ├── tsconfig.json          # TypeScript config
 │   └── package.json
 │
@@ -107,6 +109,10 @@ GuestManagementApp/
 │   ├── DEPLOYMENT_FIX.md      # Deployment troubleshooting
 │   └── RENDER_SETUP.md        # Render setup guide
 │
+├── SYSTEM_CREDENTIALS.md       # System admin login credentials
+├── PRODUCTION_DEPLOYMENT_CHECKLIST.md  # Complete deployment guide
+├── API_KEY_SETUP.md           # API key configuration
+├── API_KEY_USAGE.md           # API key usage guide
 ├── .gitignore                 # Git ignore patterns
 ├── render.yaml                # Render config (legacy)
 └── README.md                  # This file
@@ -358,6 +364,71 @@ CLIENT_URL=https://gmsapp-blue.vercel.app
 - Development: Uses `http://localhost:5000`
 - Production: Uses environment detection or `NEXT_PUBLIC_API_URL`
 
+### 🔐 Production Security Setup
+
+**IMPORTANT: Before deploying to production, complete these security steps:**
+
+1. **Create Production Environment File**
+   ```bash
+   cd server
+   cp .env.production.example .env.production
+   # Edit .env.production with your secure values
+   ```
+
+2. **Generate Strong Secrets**
+   ```bash
+   # Generate JWT Secret (64 characters)
+   node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+   
+   # Generate API Key if needed
+   npm run generate:apikey:prod
+   ```
+
+3. **Create System Administrator Account**
+   ```bash
+   cd server
+   npm run seed:system:prod
+   ```
+   
+   **Production Credentials** (created automatically):
+   - Email: `sysadmin@guestmanagement.prod`
+   - Password: `Pr0d$yst3m!2026#Secur3`
+   - **⚠️ STORE THESE SECURELY & CHANGE AFTER FIRST LOGIN!**
+
+4. **Security Checklist**
+   
+   See [PRODUCTION_DEPLOYMENT_CHECKLIST.md](PRODUCTION_DEPLOYMENT_CHECKLIST.md) for complete security checklist including:
+   - Database security configuration
+   - SSL/TLS certificate setup
+   - Rate limiting and CORS configuration
+   - Monitoring and logging setup
+   - Backup and disaster recovery procedures
+
+5. **System Credentials Documentation**
+   
+   Review [SYSTEM_CREDENTIALS.md](SYSTEM_CREDENTIALS.md) for:
+   - Development vs. Production credentials
+   - System admin access instructions
+   - Password rotation policies
+   - Security best practices
+
+6. **PM2 Process Manager** (Recommended for production)
+   ```bash
+   cd server
+   npm install -g pm2
+   pm2 start ecosystem.config.js --env production
+   pm2 save
+   pm2 startup
+   ```
+
+**⚠️ Critical Security Notes:**
+- Never commit `.env.production` to version control
+- Change default production password immediately after first login
+- Enable two-factor authentication if available
+- Rotate system admin password every 90 days
+- Review security logs regularly
+- Keep dependencies updated for security patches
+
 ## 📚 API Documentation
 
 ### Authentication
@@ -390,11 +461,28 @@ CLIENT_URL=https://gmsapp-blue.vercel.app
 
 ### Backend (server/)
 ```bash
-npm run dev          # Start development server with hot reload
-npm run build        # Compile TypeScript to JavaScript
-npm start            # Start production server
-npm run check:mongodb # Test MongoDB connection
-npm run debug:env    # Display environment configuration
+# Development
+npm run dev              # Start development server with hot reload
+npm run build            # Compile TypeScript to JavaScript
+npm start                # Start production server
+npm run check:mongodb    # Test MongoDB connection
+npm run debug:env        # Display environment configuration
+
+# Database Seeding
+npm run seed:demo        # Create demo organization (dev)
+npm run seed:demo:prod   # Create demo organization (prod)
+npm run seed:system      # Create system admin (dev)
+npm run seed:system:prod # Create system admin (prod)
+
+# API Key Management
+npm run generate:apikey       # Generate API key (dev)
+npm run generate:apikey:prod  # Generate API key (prod)
+
+# Production Deployment
+pm2 start ecosystem.config.js --env production  # Start with PM2
+pm2 stop guest-management-api                   # Stop service
+pm2 restart guest-management-api                # Restart service
+pm2 logs guest-management-api                   # View logs
 ```
 
 ### Frontend (client/)

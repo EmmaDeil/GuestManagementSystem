@@ -97,22 +97,22 @@ export default function UserManagement() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-gradient-to-r from-purple-600 to-indigo-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link href="/system/dashboard" className="text-white hover:text-purple-100">
-                <span className="text-2xl">←</span>
+                <span className="text-xl sm:text-2xl">←</span>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-white">User Management</h1>
-                <p className="text-purple-100 text-sm">Manage system users and organizations</p>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">User Management</h1>
+                <p className="text-purple-100 text-xs sm:text-sm">Manage system users and organizations</p>
               </div>
             </div>
             <Link
               href="/"
-              className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-colors flex items-center gap-2"
+              className="bg-white bg-opacity-20 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-opacity-30 transition-colors flex items-center gap-2 text-sm sm:text-base"
             >
               <span>🏠</span>
-              <span className="font-medium">Home</span>
+              <span className="font-medium hidden sm:inline">Home</span>
             </Link>
           </div>
         </div>
@@ -120,46 +120,46 @@ export default function UserManagement() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
             <div className="flex items-center gap-3">
-              <div className="text-3xl">👥</div>
+              <div className="text-2xl sm:text-3xl">👥</div>
               <div>
-                <p className="text-sm text-gray-500">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+                <p className="text-xs sm:text-sm text-gray-500">Total Users</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{users.length}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
             <div className="flex items-center gap-3">
-              <div className="text-3xl">✅</div>
+              <div className="text-2xl sm:text-3xl">✅</div>
               <div>
-                <p className="text-sm text-gray-500">Active Users</p>
-                <p className="text-2xl font-bold text-green-600">{users.filter(u => u.isActive).length}</p>
+                <p className="text-xs sm:text-sm text-gray-500">Active Users</p>
+                <p className="text-xl sm:text-2xl font-bold text-green-600">{users.filter(u => u.isActive).length}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
             <div className="flex items-center gap-3">
-              <div className="text-3xl">⏸️</div>
+              <div className="text-2xl sm:text-3xl">⏸️</div>
               <div>
-                <p className="text-sm text-gray-500">Inactive Users</p>
-                <p className="text-2xl font-bold text-orange-600">{users.filter(u => !u.isActive).length}</p>
+                <p className="text-xs sm:text-sm text-gray-500">Inactive Users</p>
+                <p className="text-xl sm:text-2xl font-bold text-orange-600">{users.filter(u => !u.isActive).length}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="grid md:grid-cols-2 gap-4">
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <input
                 type="text"
                 placeholder="Search users by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
               />
             </div>
             <div className="flex gap-2">
@@ -167,7 +167,7 @@ export default function UserManagement() {
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status)}
-                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  className={`flex-1 px-2 sm:px-4 py-2 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
                     filterStatus === status
                       ? 'bg-purple-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
