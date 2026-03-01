@@ -442,6 +442,7 @@ export default function AdminDashboard() {
    const handleLogout = () => {
       localStorage.removeItem('admin_token');
       localStorage.removeItem('organization');
+      localStorage.removeItem('is_system_login');
       router.push('/admin');
    };
 

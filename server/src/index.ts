@@ -10,6 +10,7 @@ import guestRoutes from './routes/guests';
 import organizationRoutes from './routes/organizations';
 import qrRoutes from './routes/qr';
 import dashboardRoutes from './routes/dashboard';
+import systemRoutes from './routes/system';
 
 // Load environment variables based on NODE_ENV
 const nodeEnv = process.env.NODE_ENV || 'development';
@@ -51,6 +52,7 @@ console.log('🔧 Setting up middleware...');
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:3000',
   'http://localhost:3000',
+  'http://localhost:3001',
   'https://gms-sigma-two.vercel.app',
 ].filter(Boolean);
 
@@ -60,6 +62,11 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps, Postman, or same-origin)
     if (!origin) return callback(null, true);
+    
+    // In development, allow all localhost origins
+    if (process.env.NODE_ENV === 'development' && origin.includes('localhost')) {
+      return callback(null, true);
+    }
     
     // Check if origin is in allowed list (remove trailing slashes for comparison)
     const normalizedOrigin = origin.replace(/\/$/, '');
@@ -74,7 +81,10 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
 }));
 
 app.use(express.json({ limit: '10mb' }));
@@ -110,6 +120,7 @@ app.use('/api/organizations', organizationRoutes);
 app.use('/api/guests', guestRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/system', systemRoutes);
 
 console.log('✅ API routes configured successfully');
 

@@ -3,7 +3,8 @@
     "target": "es2022",
     "lib": ["es2022"],
     "module": "commonjs",
-    "moduleResolution": "node",
+    "moduleResolution": "node10",
+    "rootDir": "./src",
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
@@ -13,15 +14,9 @@
     "resolveJsonModule": true,
     "declaration": false,
     "sourceMap": false,
-    "types": ["node"]
+    "types": ["node"],
+    "ignoreDeprecations": "5.0"
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 }

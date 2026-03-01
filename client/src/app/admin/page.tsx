@@ -53,9 +53,20 @@ function AdminLoginForm() {
             // Store token in localStorage
             localStorage.setItem('admin_token', result.data.token);
             localStorage.setItem('organization', JSON.stringify(result.data.organization));
+            
+            // Store system login flag if it's a system login
+            if (isSystemLogin) {
+               localStorage.setItem('is_system_login', 'true');
+            } else {
+               localStorage.removeItem('is_system_login');
+            }
 
-            // Redirect to dashboard
-            router.push('/admin/dashboard');
+            // Redirect to appropriate dashboard
+            if (isSystemLogin) {
+               router.push('/system/dashboard');
+            } else {
+               router.push('/admin/dashboard');
+            }
          } else {
             setError(result.message || 'Login failed');
          }
@@ -82,24 +93,10 @@ function AdminLoginForm() {
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                {/* Header */}
                <div className={`${isSystemLogin ? 'bg-purple-600' : 'bg-blue-600'} text-white p-6 text-center`}>
-                  {/* Toggle Switch */}
-                  <div className="flex justify-center items-center mb-4">
-                     <span className={`text-sm font-medium mr-3 ${!isSystemLogin ? 'text-white' : 'text-blue-200'}`}>
-                        Organization
-                     </span>
-                     <button
-                        onClick={() => setIsSystemLogin(!isSystemLogin)}
-                        className="relative inline-flex h-6 w-12 items-center rounded-full bg-white bg-opacity-30 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-                     >
-                        <span
-                           className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              isSystemLogin ? 'translate-x-7' : 'translate-x-1'
-                           }`}
-                        />
-                     </button>
-                     <span className={`text-sm font-medium ml-3 ${isSystemLogin ? 'text-white' : 'text-blue-200'}`}>
-                        System
-                     </span>
+                  <div className="flex justify-center items-center mb-2">
+                     <div className={`text-4xl ${isSystemLogin ? '🔑' : '🏢'}`}>
+                        {isSystemLogin ? '🔑' : '🏢'}
+                     </div>
                   </div>
                   <h1 className="text-2xl font-bold">{isSystemLogin ? 'System Portal' : 'Admin Portal'}</h1>
                   <p className={`${isSystemLogin ? 'text-purple-100' : 'text-blue-100'} mt-1`}>Guest Management System</p>
