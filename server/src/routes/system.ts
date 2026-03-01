@@ -1,8 +1,10 @@
 import express, { Request, Response } from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, requireScopes } from '../middleware/auth';
 import Organization from '../models/Organization';
 import Guest from '../models/Guest';
 import SystemConfig from '../models/SystemConfig';
+import { API_SCOPES, SCOPE_PRESETS, validateScopes } from '../config/scopes';
+import { getAuditLogs } from '../utils/audit';
 import crypto from 'crypto';
 
 const router = express.Router();
@@ -16,16 +18,19 @@ router.get('/config', authenticateToken, async (req: Request, res: Response) => 
     let systemConfig = await SystemConfig.findOne();
     
     if (!systemConfig) {
-      // Generate initial API key
+      // Generate initial API key with system admin scope
       const initialApiKey = `gma_${crypto.randomBytes(32).toString('hex')}`;
       
       // Create default config if it doesn't exist
       systemConfig = await SystemConfig.create({
         apiKeys: [{
           key: initialApiKey,
-          name: 'Default API Key',
+          name: 'Default System Admin Key',
+          scopes: [API_SCOPES.SYSTEM_ADMIN],
           createdAt: new Date(),
-          isActive: true
+          isActive: true,
+          rateLimit: 10000,
+          requestCount: 0
         }],
         systemVersion: '1.0.0',
         features: {
@@ -52,9 +57,12 @@ router.get('/config', authenticateToken, async (req: Request, res: Response) => 
       const defaultApiKey = `gma_${crypto.randomBytes(32).toString('hex')}`;
       systemConfig.apiKeys = [{
         key: defaultApiKey,
-        name: 'Default API Key',
+        name: 'Default System Admin Key',
+        scopes: [API_SCOPES.SYSTEM_ADMIN],
         createdAt: new Date(),
-        isActive: true
+        isActive: true,
+        rateLimit: 10000,
+        requestCount: 0
       }];
       await systemConfig.save();
     }
@@ -123,16 +131,77 @@ router.patch('/config', authenticateToken, async (req: Request, res: Response) =
 
 // API Key Management Routes
 
-// Generate new API key
-router.post('/api-keys/generate', authenticateToken, async (req: Request, res: Response) => {
+// Get available scopes and presets
+router.get('/api-keys/scopes', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { name } = req.body;
+    res.json({
+      success: true,
+      data: {
+        availableScopes: Object.values(API_SCOPES),
+        presets: SCOPE_PRESETS
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching scopes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch scopes'
+    });
+  }
+});
+
+// Generate new API key
+router.post('/api-keys/generate', authenticateToken, requireScopes([API_SCOPES.API_KEYS_WRITE]), async (req: Request, res: Response) => {
+  try {
+    const { 
+      name, 
+      scopes, 
+      organizationId, 
+      expiresInDays,
+      rateLimit,
+      preset 
+    } = req.body;
 
     if (!name) {
       return res.status(400).json({
         success: false,
         message: 'API key name is required'
       });
+    }
+
+    // Determine scopes
+    let finalScopes: string[] = [];
+    
+    if (preset && SCOPE_PRESETS[preset as keyof typeof SCOPE_PRESETS]) {
+      finalScopes = [...SCOPE_PRESETS[preset as keyof typeof SCOPE_PRESETS]];
+    } else if (scopes && Array.isArray(scopes)) {
+      finalScopes = scopes;
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Either scopes array or preset must be provided'
+      });
+    }
+
+    // Validate scopes
+    const validation = validateScopes(finalScopes);
+    if (!validation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid scopes provided',
+        invalidScopes: validation.invalidScopes
+      });
+    }
+
+    // Validate organization if provided
+    if (organizationId) {
+      const org = await Organization.findById(organizationId);
+      if (!org) {
+        return res.status(404).json({
+          success: false,
+          message: 'Organization not found'
+        });
+      }
     }
 
     let systemConfig = await SystemConfig.findOne();
@@ -144,12 +213,22 @@ router.post('/api-keys/generate', authenticateToken, async (req: Request, res: R
     // Generate a secure random API key
     const apiKey = `gma_${crypto.randomBytes(32).toString('hex')}`;
 
+    // Calculate expiration date
+    const expiresAt = expiresInDays 
+      ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
+      : undefined;
+
     // Add the new API key
     systemConfig.apiKeys.push({
       key: apiKey,
       name,
+      scopes: finalScopes,
+      organizationId: organizationId || undefined,
       createdAt: new Date(),
-      isActive: true
+      expiresAt,
+      isActive: true,
+      rateLimit: rateLimit || 1000,
+      requestCount: 0
     });
 
     await systemConfig.save();
@@ -160,6 +239,10 @@ router.post('/api-keys/generate', authenticateToken, async (req: Request, res: R
       data: {
         key: apiKey,
         name,
+        scopes: finalScopes,
+        organizationId,
+        expiresAt,
+        rateLimit: rateLimit || 1000,
         createdAt: new Date()
       }
     });
@@ -173,7 +256,7 @@ router.post('/api-keys/generate', authenticateToken, async (req: Request, res: R
 });
 
 // Revoke API key
-router.delete('/api-keys/:key', authenticateToken, async (req: Request, res: Response) => {
+router.delete('/api-keys/:key', authenticateToken, requireScopes([API_SCOPES.API_KEYS_DELETE]), async (req: Request, res: Response) => {
   try {
     const { key } = req.params;
 
@@ -208,6 +291,95 @@ router.delete('/api-keys/:key', authenticateToken, async (req: Request, res: Res
     res.status(500).json({
       success: false,
       message: 'Failed to revoke API key'
+    });
+  }
+});
+
+// Update API key (toggle active status, update rate limit, etc.)
+router.patch('/api-keys/:key', authenticateToken, requireScopes([API_SCOPES.API_KEYS_WRITE]), async (req: Request, res: Response) => {
+  try {
+    const { key } = req.params;
+    const { isActive, rateLimit, name } = req.body;
+
+    const systemConfig = await SystemConfig.findOne();
+    
+    if (!systemConfig) {
+      return res.status(404).json({
+        success: false,
+        message: 'System configuration not found'
+      });
+    }
+
+    const apiKey = systemConfig.apiKeys.find(k => k.key === key);
+    
+    if (!apiKey) {
+      return res.status(404).json({
+        success: false,
+        message: 'API key not found'
+      });
+    }
+
+    // Update fields
+    if (isActive !== undefined) apiKey.isActive = isActive;
+    if (rateLimit !== undefined) apiKey.rateLimit = rateLimit;
+    if (name !== undefined) apiKey.name = name;
+
+    await systemConfig.save();
+
+    res.json({
+      success: true,
+      message: 'API key updated successfully',
+      data: {
+        key: apiKey.key,
+        name: apiKey.name,
+        isActive: apiKey.isActive,
+        rateLimit: apiKey.rateLimit
+      }
+    });
+  } catch (error) {
+    console.error('Error updating API key:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update API key'
+    });
+  }
+});
+
+// Reset API key request count (for rate limiting)
+router.post('/api-keys/:key/reset-count', authenticateToken, requireScopes([API_SCOPES.API_KEYS_WRITE]), async (req: Request, res: Response) => {
+  try {
+    const { key } = req.params;
+
+    const systemConfig = await SystemConfig.findOne();
+    
+    if (!systemConfig) {
+      return res.status(404).json({
+        success: false,
+        message: 'System configuration not found'
+      });
+    }
+
+    const apiKey = systemConfig.apiKeys.find(k => k.key === key);
+    
+    if (!apiKey) {
+      return res.status(404).json({
+        success: false,
+        message: 'API key not found'
+      });
+    }
+
+    apiKey.requestCount = 0;
+    await systemConfig.save();
+
+    res.json({
+      success: true,
+      message: 'API key request count reset successfully'
+    });
+  } catch (error) {
+    console.error('Error resetting API key count:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reset API key count'
     });
   }
 });
@@ -569,6 +741,47 @@ router.get('/logs', authenticateToken, async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch activity logs'
+    });
+  }
+});
+
+// Get audit logs (API key usage, system actions)
+router.get('/audit-logs', authenticateToken, requireScopes([API_SCOPES.SYSTEM_LOGS_READ]), async (req: Request, res: Response) => {
+  try {
+    const {
+      action,
+      resource,
+      apiKeyId,
+      organizationId,
+      startDate,
+      endDate,
+      limit = 100,
+      page = 1
+    } = req.query;
+
+    const filters: any = {
+      limit: parseInt(limit as string),
+      page: parseInt(page as string)
+    };
+
+    if (action) filters.action = action;
+    if (resource) filters.resource = resource;
+    if (apiKeyId) filters.apiKeyId = apiKeyId;
+    if (organizationId) filters.organizationId = organizationId;
+    if (startDate) filters.startDate = new Date(startDate as string);
+    if (endDate) filters.endDate = new Date(endDate as string);
+
+    const result = await getAuditLogs(filters);
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error fetching audit logs:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch audit logs'
     });
   }
 });

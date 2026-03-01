@@ -2,11 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import Organization from '../models/Organization';
 import SystemConfig from '../models/SystemConfig';
+import { isSystemAdminScope } from '../config/scopes';
 
 interface AuthRequest extends Request {
   organization?: any;
   isSystemAdmin?: boolean;
   apiKey?: string;
+  apiKeyScopes?: string[];
+  apiKeyId?: string;
 }
 
 export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -32,24 +35,60 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
         });
       }
 
-      const apiKey = systemConfig.apiKeys.find(
+      const apiKeyEntry = systemConfig.apiKeys.find(
         key => key.key === token && key.isActive
       );
 
-      if (!apiKey) {
+      if (!apiKeyEntry) {
         return res.status(401).json({
           success: false,
           message: 'Invalid or revoked API key'
         });
       }
 
-      // Update last used timestamp
-      apiKey.lastUsed = new Date();
+      // Check expiration
+      if (apiKeyEntry.expiresAt && new Date() > apiKeyEntry.expiresAt) {
+        return res.status(401).json({
+          success: false,
+          message: 'API key has expired'
+        });
+      }
+
+      // Check rate limit
+      if (apiKeyEntry.rateLimit && apiKeyEntry.requestCount && apiKeyEntry.requestCount >= apiKeyEntry.rateLimit) {
+        return res.status(429).json({
+          success: false,
+          message: 'Rate limit exceeded for this API key'
+        });
+      }
+
+      // Update last used timestamp and request count
+      apiKeyEntry.lastUsed = new Date();
+      apiKeyEntry.requestCount = (apiKeyEntry.requestCount || 0) + 1;
       await systemConfig.save();
 
-      // Mark request as system admin level access
-      req.isSystemAdmin = true;
+      // Set authentication context
       req.apiKey = token;
+      req.apiKeyScopes = apiKeyEntry.scopes || [];
+      req.apiKeyId = apiKeyEntry.key; // Use the key itself as identifier
+      
+      // Check if this is a system admin key
+      req.isSystemAdmin = isSystemAdminScope(apiKeyEntry.scopes || []);
+      
+      // If API key is bound to a specific organization, load it
+      if (apiKeyEntry.organizationId) {
+        const organization = await Organization.findById(apiKeyEntry.organizationId).select('-password');
+        
+        if (!organization || !organization.isActive) {
+          return res.status(401).json({
+            success: false,
+            message: 'Organization not found or inactive'
+          });
+        }
+        
+        req.organization = organization;
+      }
+
       return next();
     }
 
@@ -80,6 +119,57 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
       message: 'Invalid or expired token'
     });
   }
+};
+
+/**
+ * Middleware to require specific scopes for API key authentication
+ * For JWT tokens, this middleware only checks if user is system admin
+ */
+export const requireScopes = (requiredScopes: string | string[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    const scopes = Array.isArray(requiredScopes) ? requiredScopes : [requiredScopes];
+    
+    // If authenticated with JWT and is system admin, allow access
+    if (req.isSystemAdmin && !req.apiKey) {
+      return next();
+    }
+    
+    // For API keys, check scopes
+    if (req.apiKeyScopes) {
+      const hasRequiredScope = scopes.some(scope => 
+        req.apiKeyScopes?.includes(scope) || 
+        req.apiKeyScopes?.includes('system:admin')
+      );
+      
+      if (hasRequiredScope) {
+        return next();
+      }
+      
+      return res.status(403).json({
+        success: false,
+        message: 'Insufficient permissions. Required scopes: ' + scopes.join(', ')
+      });
+    }
+    
+    // If not API key and not system admin, deny
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied'
+    });
+  };
+};
+
+/**
+ * Middleware to ensure request has organization context (either from JWT or org-specific API key)
+ */
+export const requireOrganization = (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (!req.organization) {
+    return res.status(400).json({
+      success: false,
+      message: 'This endpoint requires organization context. Use an organization-specific API key or organization JWT token.'
+    });
+  }
+  next();
 };
 
 export default authenticateToken;

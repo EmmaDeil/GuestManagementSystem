@@ -1,12 +1,23 @@
 # API Key Feature - Quick Setup
 
-## What's New
+## What's New - Enhanced Security! 🔒
 
-The Guest Management App now supports **API Keys** for external application integration! This allows you to:
+The Guest Management App now supports **Advanced API Keys** with:
+- ✅ **Granular Permissions** (Scopes) - No more "all or nothing" access
+- ✅ **Organization-Specific Keys** - Limit keys to specific organizations
+- ✅ **Rate Limiting** - Prevent abuse with configurable request limits
+- ✅ **Expiration Dates** - Time-limited keys for temporary access
+- ✅ **Audit Logging** - Track every API key usage
+- ✅ **Preset Configurations** - Quick setup for common use cases
+
+This allows you to:
 - Build mobile apps that connect to your guest management system
 - Create custom dashboards and analytics tools
 - Integrate with third-party services
 - Automate guest registration and management
+- Provide secure, limited access to partners
+
+**For detailed security documentation, see [API_KEY_SECURITY.md](./API_KEY_SECURITY.md)**
 
 ## Getting Started
 
@@ -23,6 +34,15 @@ The Guest Management App now supports **API Keys** for external application inte
 3. **Generate Your First API Key**
    - Scroll down to "API Key Management" section
    - Enter a descriptive name (e.g., "Mobile App Integration")
+   - **NEW:** Select a scope preset:
+     - **System Admin** - Full system access (use carefully!)
+     - **Organization Admin** - Manage one organization
+     - **Guest Registration Only** - For kiosks and registration terminals
+     - **Analytics Reader** - Read-only access to analytics
+     - **Mobile App** - Full guest management features
+     - **Read Only** - View-only access
+   - (Optional) Set expiration date and rate limit
+   - (Optional) Bind to specific organization
    - Click "Generate Key"
    - **IMPORTANT**: Copy the key immediately - it won't be shown again!
 
@@ -48,20 +68,34 @@ See [API_KEY_USAGE.md](./API_KEY_USAGE.md) for detailed examples in:
 
 ## Key Features
 
-### 🔒 Secure
+### 🔒 **Secure & Granular**
 - Keys are auto-generated with cryptographic randomness
 - Prefixed with `gma_` for easy identification
+- **Scope-based permissions** - Grant only what's needed
 - Can be revoked instantly if compromised
+- Optional expiration dates for time-limited access
 
-### 📊 Trackable
-- See when each key was created
-- Monitor last usage timestamp (coming soon)
+### 📊 **Trackable & Monitored**
+- See when each key was created and last used
+- Monitor request count against rate limits
+- **Comprehensive audit logging** of all API key usage
 - View all active keys in one place
 
-### 🔄 System-Level Access
-- API keys grant system administrator level permissions
-- Full access to system endpoints
-- Same capabilities as system admin login
+### 🏢 **Organization-Specific Access**
+- Bind keys to specific organizations
+- Limit data access to single organization
+- Perfect for customer-facing integrations
+
+### ⚡ **Rate Limiting**
+- Configurable request limits per key
+- Default: 1000 requests/hour (customizable)
+- Automatic reset and tracking
+- Prevent abuse and control costs
+
+### 🎯 **Preset Configurations**
+- Quick setup with predefined scope sets
+- System Admin, Organization Admin, Mobile App, etc.
+- Custom scope combinations also supported
 
 ## API Key Format
 
@@ -77,16 +111,26 @@ gma_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
 ## Security Best Practices
 
 ✅ **DO:**
+- **Use minimal scopes** - Grant only the permissions needed
+- **Set expiration dates** - Use time-limited keys for temporary access
+- **Bind to organizations** - Use org-specific keys when possible
 - Store API keys in environment variables
-- Use different keys for different applications
+- Use different keys for different applications/environments
+- **Monitor audit logs** - Regularly review API key usage
+- **Set appropriate rate limits** - Protect against abuse
 - Revoke keys immediately if compromised
 - Use descriptive names to track key usage
+- **Rotate keys periodically** - Generate new keys and revoke old ones
 
 ❌ **DON'T:**
+- **Use System Admin scope** - Unless absolutely necessary
 - Commit API keys to version control
-- Share keys publicly
+- Share keys publicly or between applications
 - Use the same key across multiple environments
 - Expose keys in client-side code
+- **Ignore rate limits** - Set realistic limits
+- **Forget to set expiration** - Always use time-limited keys
+- **Share keys between customers** - Each integration needs its own key
 
 ## Managing API Keys
 
@@ -175,19 +219,24 @@ response = requests.get(
 
 ## Next Steps
 
-1. ✅ Generate your first API key
+1. ✅ Generate your first API key with appropriate scopes
 2. 📖 Read the full [API Usage Guide](./API_KEY_USAGE.md)
-3. 🛠️ Build your integration
-4. 📊 Monitor usage in System Configuration
-5. 🔒 Follow security best practices
+3. 🔐 Review [API Key Security Documentation](./API_KEY_SECURITY.md)
+4. 🛠️ Build your integration
+5. 📊 Monitor usage and audit logs in System Configuration
+6. 🔒 Follow security best practices
+7. 🔄 Set up key rotation schedule
 
 ## Support
 
 For questions or issues:
-- Check system logs in System Configuration
+- Check system logs and audit logs in System Configuration
 - Review error messages in API responses
-- Consult the full API documentation
+- Consult [API_KEY_SECURITY.md](./API_KEY_SECURITY.md) for detailed documentation
+- Check scope requirements for specific endpoints
 
 ---
 
 **Ready to integrate?** Generate your first API key now in System Configuration! 🚀
+
+**New to scope-based security?** Check out [API_KEY_SECURITY.md](./API_KEY_SECURITY.md) for comprehensive guidance on choosing the right scopes and security best practices.
