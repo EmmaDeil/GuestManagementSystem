@@ -22,7 +22,7 @@
 ### 3. System Administrator Account
 - [ ] Run system admin seed script: `npm run seed:system:prod`
 - [ ] Store production credentials in secure password manager
-- [ ] **Email:** `sysadmin@guestmanagement.prod`
+- [ ] **Email:** `sysadmin@guestmgmt-prod.com`
 - [ ] **Password:** `Pr0d$yst3m!2026#Secur3`
 - [ ] Remove SYSTEM_CREDENTIALS.md from production server
 - [ ] Set calendar reminder for password rotation (90 days)

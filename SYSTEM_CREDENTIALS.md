@@ -7,7 +7,7 @@
 **⚠️ THESE ARE PRODUCTION CREDENTIALS - KEEP SECURE! ⚠️**
 
 #### Login Details
-- **Email:** `sysadmin@guestmanagement.prod`
+- **Email:** `sysadmin@guestmgmt-prod.com`
 - **Password:** `Pr0d$yst3m!2026#Secur3`
 
 #### Access Instructions

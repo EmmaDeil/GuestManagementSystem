@@ -12,7 +12,7 @@ const seedSystemAdmin = async () => {
     // Environment-specific credentials
     const credentials = isProduction
       ? {
-          email: 'sysadmin@guestmanagement.prod',
+          email: 'sysadmin@guestmgmt-prod.com',
           password: 'Pr0d$yst3m!2026#Secur3',
           name: 'Production System Administrator'
         }
