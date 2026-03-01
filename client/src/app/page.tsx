@@ -1,4 +1,10 @@
+'use client';
+
+import { useState } from 'react';
+
 export default function HomePage() {
+  const [isSystemLogin, setIsSystemLogin] = useState(false);
+
   // Debug logging for production
   if (typeof window !== 'undefined') {
     console.log('🏠 Home Page Loaded');
@@ -27,7 +33,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
           {/* Guest Sign-In */}
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <div className="text-blue-600 text-6xl mb-4">📱</div>
@@ -49,50 +55,65 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Organization Admin */}
+          {/* Admin/System Login with Toggle */}
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <div className="text-green-600 text-6xl mb-4">🏢</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Organization Admin</h3>
-            <p className="text-gray-600 mb-6">
-              Manage your organization&apos;s guest registration, generate QR codes, and track visitor analytics.
-            </p>
-            <a
-              href="/admin"
-              className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors mb-4"
-            >
-              Admin Login
-            </a>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <p className="text-sm text-green-800">
-                <strong>Features:</strong><br />
-                • Generate QR codes for guest sign-in<br />
-                • Track guest visits and analytics<br />
-                • Assign ID cards to guests<br />
-                • Manage locations and staff
-              </p>
+            {/* Toggle Switch */}
+            <div className="flex justify-center items-center mb-6">
+              <span className={`text-sm font-medium mr-3 ${!isSystemLogin ? 'text-green-600' : 'text-gray-400'}`}>
+                Organization
+              </span>
+              <button
+                onClick={() => setIsSystemLogin(!isSystemLogin)}
+                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  isSystemLogin ? 'bg-purple-600 focus:ring-purple-500' : 'bg-green-600 focus:ring-green-500'
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                    isSystemLogin ? 'translate-x-8' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className={`text-sm font-medium ml-3 ${isSystemLogin ? 'text-purple-600' : 'text-gray-400'}`}>
+                System
+              </span>
             </div>
-          </div>
 
-          {/* System Login */}
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <div className="text-purple-600 text-6xl mb-4">🔑</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">System Login</h3>
+            <div className={`${isSystemLogin ? 'text-purple-600' : 'text-green-600'} text-6xl mb-4`}>
+              {isSystemLogin ? '🔑' : '🏢'}
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              {isSystemLogin ? 'System Login' : 'Organization Admin'}
+            </h3>
             <p className="text-gray-600 mb-6">
-              Access the system with your user credentials for advanced management functions.
+              {isSystemLogin
+                ? 'Access the system with your user credentials for advanced management functions.'
+                : "Manage your organization's guest registration, generate QR codes, and track visitor analytics."}
             </p>
             <a
-              href="/admin"
-              className="inline-block bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors mb-4"
+              href={`/admin?type=${isSystemLogin ? 'system' : 'organization'}`}
+              className={`inline-block ${isSystemLogin ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white px-6 py-3 rounded-lg font-medium transition-colors mb-4`}
             >
-              System Login
+              {isSystemLogin ? 'System Login' : 'Admin Login'}
             </a>
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <p className="text-sm text-purple-800">
-                <strong>For authorized users:</strong><br />
-                • System configuration<br />
-                • User management<br />
-                • Report generation<br />
-                • Advanced analytics
+            <div className={`${isSystemLogin ? 'bg-purple-50' : 'bg-green-50'} p-4 rounded-lg`}>
+              <p className={`text-sm ${isSystemLogin ? 'text-purple-800' : 'text-green-800'}`}>
+                <strong>{isSystemLogin ? 'For authorized users:' : 'Features:'}</strong><br />
+                {isSystemLogin ? (
+                  <>
+                    • System configuration<br />
+                    • User management<br />
+                    • Report generation<br />
+                    • Advanced analytics
+                  </>
+                ) : (
+                  <>
+                    • Generate QR codes for guest sign-in<br />
+                    • Track guest visits and analytics<br />
+                    • Assign ID cards to guests<br />
+                    • Manage locations and staff
+                  </>
+                )}
               </p>
             </div>
           </div>

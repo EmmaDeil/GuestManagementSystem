@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { LoginRequest, ApiResponse, LoginResponse } from '../../types';
 import config from '../../config';
 
@@ -11,10 +12,19 @@ interface LoginFormData {
    password: string;
 }
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
    const router = useRouter();
+   const searchParams = useSearchParams();
    const [isSubmitting, setIsSubmitting] = useState(false);
    const [error, setError] = useState<string | null>(null);
+   const [isSystemLogin, setIsSystemLogin] = useState(false);
+
+   useEffect(() => {
+      const type = searchParams.get('type');
+      if (type === 'system') {
+         setIsSystemLogin(true);
+      }
+   }, [searchParams]);
 
    const {
       register,
@@ -60,20 +70,39 @@ export default function AdminLoginPage() {
    return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
          {/* Back to Home Button */}
-         <a
+         <Link
             href="/"
             className="fixed top-4 left-4 bg-white text-gray-700 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 transition-colors flex items-center gap-2 z-10"
          >
             <span className="text-xl">🏠</span>
             <span className="font-medium">Home</span>
-         </a>
+         </Link>
 
          <div className="max-w-md w-full">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                {/* Header */}
-               <div className="bg-blue-600 text-white p-6 text-center">
-                  <h1 className="text-2xl font-bold">Admin Portal</h1>
-                  <p className="text-blue-100 mt-1">Guest Management System</p>
+               <div className={`${isSystemLogin ? 'bg-purple-600' : 'bg-blue-600'} text-white p-6 text-center`}>
+                  {/* Toggle Switch */}
+                  <div className="flex justify-center items-center mb-4">
+                     <span className={`text-sm font-medium mr-3 ${!isSystemLogin ? 'text-white' : 'text-blue-200'}`}>
+                        Organization
+                     </span>
+                     <button
+                        onClick={() => setIsSystemLogin(!isSystemLogin)}
+                        className="relative inline-flex h-6 w-12 items-center rounded-full bg-white bg-opacity-30 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+                     >
+                        <span
+                           className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              isSystemLogin ? 'translate-x-7' : 'translate-x-1'
+                           }`}
+                        />
+                     </button>
+                     <span className={`text-sm font-medium ml-3 ${isSystemLogin ? 'text-white' : 'text-blue-200'}`}>
+                        System
+                     </span>
+                  </div>
+                  <h1 className="text-2xl font-bold">{isSystemLogin ? 'System Portal' : 'Admin Portal'}</h1>
+                  <p className={`${isSystemLogin ? 'text-purple-100' : 'text-blue-100'} mt-1`}>Guest Management System</p>
                </div>
 
                {/* Login Form */}
@@ -87,7 +116,7 @@ export default function AdminLoginPage() {
                   {/* Email */}
                   <div>
                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                        Organization Email
+                        {isSystemLogin ? 'System Email' : 'Organization Email'}
                      </label>
                      <input
                         {...register('email', {
@@ -99,7 +128,7 @@ export default function AdminLoginPage() {
                         })}
                         type="email"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter your organization email"
+                        placeholder={isSystemLogin ? 'Enter your system email' : 'Enter your organization email'}
                      />
                      {errors.email && (
                         <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
@@ -129,7 +158,7 @@ export default function AdminLoginPage() {
                   <button
                      type="submit"
                      disabled={isSubmitting}
-                     className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                     className={`w-full ${isSystemLogin ? 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500' : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'} text-white py-3 px-4 rounded-lg font-medium focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
                   >
                      {isSubmitting ? (
                         <span className="flex items-center justify-center">
@@ -141,15 +170,17 @@ export default function AdminLoginPage() {
                      )}
                   </button>
 
-                  {/* Register Link */}
-                  <div className="text-center pt-4 border-t">
-                     <p className="text-sm text-gray-600">
-                        Don&apos;t have an organization account?{' '}
-                        <a href="/admin/register" className="text-blue-600 hover:text-blue-700 font-medium">
-                           Register here
-                        </a>
-                     </p>
-                  </div>
+                  {/* Register Link - Only show for organization login */}
+                  {!isSystemLogin && (
+                     <div className="text-center pt-4 border-t">
+                        <p className="text-sm text-gray-600">
+                           Don&apos;t have an organization account?{' '}
+                           <a href="/admin/register" className="text-blue-600 hover:text-blue-700 font-medium">
+                              Register here
+                           </a>
+                        </p>
+                     </div>
+                  )}
                </form>
             </div>
 
@@ -166,5 +197,19 @@ export default function AdminLoginPage() {
             </div> */}
          </div>
       </div>
+   );
+}
+export default function AdminLoginPage() {
+   return (
+      <Suspense fallback={
+         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+            <div className="bg-white p-8 rounded-lg shadow-lg">
+               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+               <p className="text-center mt-4 text-gray-600">Loading...</p>
+            </div>
+         </div>
+      }>
+         <AdminLoginForm />
+      </Suspense>
    );
 }
