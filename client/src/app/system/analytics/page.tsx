@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import config from '@/config';
+import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface AnalyticsData {
   summary: {
@@ -33,6 +34,7 @@ export default function AdvancedAnalytics() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
+  const [filterActive, setFilterActive] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -70,19 +72,50 @@ export default function AdvancedAnalytics() {
   };
 
   const handleDateFilter = () => {
+    if (dateRange.startDate && dateRange.endDate) {
+      // Validate that start date is before end date
+      const start = new Date(dateRange.startDate);
+      const end = new Date(dateRange.endDate);
+      
+      if (start > end) {
+        alert('Start date must be before end date');
+        return;
+      }
+    }
+
     const token = localStorage.getItem('admin_token');
     if (token) {
       setIsLoading(true);
+      setFilterActive(!!dateRange.startDate || !!dateRange.endDate);
       fetchAnalytics(token, dateRange.startDate, dateRange.endDate);
     }
   };
 
   const clearFilter = () => {
     setDateRange({ startDate: '', endDate: '' });
+    setFilterActive(false);
     const token = localStorage.getItem('admin_token');
     if (token) {
       setIsLoading(true);
       fetchAnalytics(token);
+    }
+  };
+
+  const setQuickFilter = (days: number) => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - days);
+    
+    const startStr = start.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
+    
+    setDateRange({ startDate: startStr, endDate: endStr });
+    
+    const token = localStorage.getItem('admin_token');
+    if (token) {
+      setIsLoading(true);
+      setFilterActive(true);
+      fetchAnalytics(token, startStr, endStr);
     }
   };
 
@@ -122,9 +155,40 @@ export default function AdvancedAnalytics() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Date Range Filter */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Date Range Filter</h2>
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Date Range Filter</h2>
+            {filterActive && (
+              <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                Filter Active
+              </span>
+            )}
+          </div>
+          
+          {/* Quick Filters */}
+          <div className="flex gap-2 mb-4 flex-wrap">
+            <button
+              onClick={() => setQuickFilter(7)}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+            >
+              Last 7 Days
+            </button>
+            <button
+              onClick={() => setQuickFilter(30)}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+            >
+              Last 30 Days
+            </button>
+            <button
+              onClick={() => setQuickFilter(90)}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+            >
+              Last 90 Days
+            </button>
+          </div>
+
+          {/* Custom Date Range */}
+          <div className="flex gap-4 items-end flex-wrap">
+            <div className="flex-1 min-w-[200px]">
               <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
               <input
                 type="date"
@@ -133,7 +197,7 @@ export default function AdvancedAnalytics() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-[200px]">
               <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
               <input
                 type="date"
@@ -144,13 +208,15 @@ export default function AdvancedAnalytics() {
             </div>
             <button
               onClick={handleDateFilter}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              disabled={isLoading}
+              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Apply Filter
+              {isLoading ? 'Loading...' : 'Apply Filter'}
             </button>
             <button
               onClick={clearFilter}
-              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              disabled={isLoading}
+              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Clear
             </button>
@@ -223,49 +289,117 @@ export default function AdvancedAnalytics() {
           {/* Daily Trends */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Daily Trends (Last 30 Days)</h2>
-            <div className="space-y-2">
-              {analytics?.dailyTrends.slice(-10).map((trend, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600 w-24">{new Date(trend._id).toLocaleDateString()}</span>
-                  <div className="flex-1 bg-gray-200 rounded-full h-6">
-                    <div
-                      className="bg-indigo-600 h-6 rounded-full flex items-center justify-end pr-2 transition-all"
-                      style={{
-                        width: `${(trend.count / Math.max(...(analytics?.dailyTrends.map(t => t.count) || [1]))) * 100}%`,
-                        minWidth: '30px'
-                      }}
-                    >
-                      <span className="text-xs text-white font-medium">{trend.count}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {analytics && analytics.dailyTrends && analytics.dailyTrends.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart
+                  data={analytics.dailyTrends.map(trend => ({
+                    date: new Date(trend._id).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                    fullDate: trend._id,
+                    guests: trend.count
+                  }))}
+                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorGuests" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis 
+                    dataKey="date" 
+                    stroke="#6b7280" 
+                    style={{ fontSize: '12px' }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis 
+                    stroke="#6b7280" 
+                    style={{ fontSize: '12px' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#fff', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                    labelStyle={{ color: '#111827', fontWeight: 'bold' }}
+                  />
+                  <Legend 
+                    wrapperStyle={{ paddingTop: '20px' }}
+                    iconType="circle"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="guests" 
+                    stroke="#6366f1" 
+                    strokeWidth={2}
+                    fillOpacity={1} 
+                    fill="url(#colorGuests)" 
+                    name="Guest Visits"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-500">
+                <p>No data available for the selected date range</p>
+              </div>
+            )}
           </div>
 
           {/* Peak Hours */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Peak Hours</h2>
-            <div className="space-y-2">
-              {analytics?.peakHours.map((hour, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600 w-16">
-                    {hour._id}:00
-                  </span>
-                  <div className="flex-1 bg-gray-200 rounded-full h-6">
-                    <div
-                      className="bg-purple-600 h-6 rounded-full flex items-center justify-end pr-2 transition-all"
-                      style={{
-                        width: `${(hour.count / Math.max(...(analytics?.peakHours.map(h => h.count) || [1]))) * 100}%`,
-                        minWidth: '30px'
-                      }}
-                    >
-                      <span className="text-xs text-white font-medium">{hour.count}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {analytics && analytics.peakHours && analytics.peakHours.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={analytics.peakHours.map(hour => ({
+                    hour: `${hour._id}:00`,
+                    guests: hour.count
+                  }))}
+                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis 
+                    dataKey="hour" 
+                    stroke="#6b7280" 
+                    style={{ fontSize: '12px' }}
+                  />
+                  <YAxis 
+                    stroke="#6b7280" 
+                    style={{ fontSize: '12px' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#fff', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                    labelStyle={{ color: '#111827', fontWeight: 'bold' }}
+                  />
+                  <Legend 
+                    wrapperStyle={{ paddingTop: '20px' }}
+                    iconType="circle"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="guests" 
+                    stroke="#9333ea" 
+                    strokeWidth={3}
+                    dot={{ fill: '#9333ea', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                    name="Guest Arrivals"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-500">
+                <p>No data available for the selected date range</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
