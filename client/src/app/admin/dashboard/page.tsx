@@ -746,12 +746,21 @@ export default function AdminDashboard() {
                      <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
                      <p className="text-gray-600">{organization?.name}</p>
                   </div>
-                  <button
-                     onClick={handleLogout}
-                     className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-                  >
-                     Logout
-                  </button>
+                  <div className="flex items-center gap-3">
+                     <a
+                        href="/"
+                        className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+                     >
+                        <span className="text-lg">🏠</span>
+                        <span className="font-medium">Home</span>
+                     </a>
+                     <button
+                        onClick={handleLogout}
+                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                     >
+                        Logout
+                     </button>
+                  </div>
                </div>
             </div>
          </header>

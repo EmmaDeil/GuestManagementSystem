@@ -122,6 +122,15 @@ export default function AdminRegister() {
 
    return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+         {/* Back to Home Button */}
+         <a
+            href="/"
+            className="fixed top-4 left-4 bg-white text-gray-700 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 transition-colors flex items-center gap-2 z-10"
+         >
+            <span className="text-xl">🏠</span>
+            <span className="font-medium">Home</span>
+         </a>
+
          <div className="max-w-2xl w-full space-y-8">
             <div>
                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

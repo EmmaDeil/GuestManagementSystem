@@ -147,6 +147,15 @@ export default function GuestSignInPage() {
    if (guestCode) {
       return (
          <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center px-4">
+            {/* Back to Home Button */}
+            <a
+               href="/"
+               className="fixed top-4 left-4 bg-white text-gray-700 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 transition-colors flex items-center gap-2 z-10"
+            >
+               <span className="text-xl">🏠</span>
+               <span className="font-medium">Home</span>
+            </a>
+
             <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
                <div className="text-green-500 text-6xl mb-4">✅</div>
                <h1 className="text-2xl font-bold text-gray-800 mb-4">Welcome!</h1>
@@ -177,6 +186,15 @@ export default function GuestSignInPage() {
 
    return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+         {/* Back to Home Button */}
+         <a
+            href="/"
+            className="fixed top-4 left-4 bg-white text-gray-700 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 transition-colors flex items-center gap-2 z-10"
+         >
+            <span className="text-xl">🏠</span>
+            <span className="font-medium">Home</span>
+         </a>
+
          <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                {/* Header */}

@@ -59,6 +59,15 @@ export default function AdminLoginPage() {
 
    return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+         {/* Back to Home Button */}
+         <a
+            href="/"
+            className="fixed top-4 left-4 bg-white text-gray-700 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 transition-colors flex items-center gap-2 z-10"
+         >
+            <span className="text-xl">🏠</span>
+            <span className="font-medium">Home</span>
+         </a>
+
          <div className="max-w-md w-full">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                {/* Header */}

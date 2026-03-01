@@ -27,7 +27,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
           {/* Guest Sign-In */}
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <div className="text-blue-600 text-6xl mb-4">📱</div>
@@ -69,6 +69,30 @@ export default function HomePage() {
                 • Track guest visits and analytics<br />
                 • Assign ID cards to guests<br />
                 • Manage locations and staff
+              </p>
+            </div>
+          </div>
+
+          {/* System Login */}
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="text-purple-600 text-6xl mb-4">🔑</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">System Login</h3>
+            <p className="text-gray-600 mb-6">
+              Access the system with your user credentials for advanced management functions.
+            </p>
+            <a
+              href="/admin"
+              className="inline-block bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors mb-4"
+            >
+              System Login
+            </a>
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <p className="text-sm text-purple-800">
+                <strong>For authorized users:</strong><br />
+                • System configuration<br />
+                • User management<br />
+                • Report generation<br />
+                • Advanced analytics
               </p>
             </div>
           </div>
