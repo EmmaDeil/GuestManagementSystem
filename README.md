@@ -18,6 +18,8 @@ A modern, comprehensive web application for managing guest sign-ins and sign-out
 - 🖨️ **QR Code Printing**: Generate and print branded QR codes with instructions
 - 📤 **Data Export**: Export guest data to CSV with date range filtering
 - 👁️ **Guest Details Modal**: View comprehensive guest information at a glance
+- 🔧 **System Configuration**: Manage features, security settings, and API keys
+- 📱 **Responsive Controls**: All admin features optimized for mobile and tablet devices
 
 ### Smart Notifications & Alerts
 - 🔔 **New Guest Arrival Alerts**: Audio + desktop notifications when guests sign in
@@ -36,6 +38,8 @@ A modern, comprehensive web application for managing guest sign-ins and sign-out
 - 🔄 **Auto-refresh**: Dashboard updates every 10 seconds without manual refresh
 - 🎨 **Modern UI/UX**: Clean, intuitive interface with Tailwind CSS
 - ⚡ **Instant Feedback**: Real-time updates and status changes
+- 📱 **Responsive API Management**: Mobile-optimized API key display with copy functionality
+- 🔐 **Secure Key Display**: Protected API key interface with regeneration controls
 
 ## 🛠️ Tech Stack
 
@@ -606,4 +610,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 **Made with ❤️ for better guest management**
 
-**Status**: ✅ Production Ready | 🚀 Actively Maintained | 📱 Mobile-First
+**Status**: ✅ Production Ready | 🚀 Actively Maintained | 📱 Mobile-First | 🎨 Fully Responsive
+
+**Latest Update**: March 2026 - Enhanced responsive design for API key management interface
